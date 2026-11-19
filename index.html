@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard ร้านยาจำลอง — การจ่ายยาและยาคงคลัง</title>
+<meta name="description" content="Dashboard ร้านยาจำลอง — การจ่ายยาและยาคงคลัง (ข้อมูลเพื่อการเรียนเท่านั้น)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect x=%273%27 y=%273%27 width=%2718%27 height=%2718%27 rx=%273%27 fill=%27%232a78d6%27/%3E%3Cpath d=%27M12 8v8M8 12h8%27 stroke=%27white%27 stroke-width=%272.5%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="hero"><div class="hero-in">
+  <div>
+    <h1>Dashboard การจ่ายยาและยาคงคลัง</h1>
+    <p>ร้านยาจำลอง · ข้อมูลเพื่อการเรียนเท่านั้น (รหัสผู้ป่วยเป็นรหัสแฝง)</p>
+    <div class="chips"><span class="chip" id="chip-period"></span><span class="chip" id="chip-asof"></span><span class="chip" id="chip-src"></span></div>
+  </div>
+  <button class="tbtn" id="theme" type="button" aria-label="สลับโหมดสว่าง/มืด">◐ สลับโหมดสี</button>
+  <nav class="tabs" role="tablist" aria-label="เลือกมุมมอง"><button class="tab-btn" role="tab" data-tab="sales" aria-selected="true">การจ่ายยา</button><button class="tab-btn" role="tab" data-tab="overview" aria-selected="false">Drug Overview</button><button class="tab-btn" role="tab" data-tab="plan" aria-selected="false">Inventory Planning</button><button class="tab-btn" role="tab" data-tab="explorer" aria-selected="false">Drug Explorer</button><button class="tab-btn" role="tab" data-tab="quality" aria-selected="false">คุณภาพข้อมูล</button></nav>
+</div></header>
+
+<main>
+<div class="tabpane on" id="pane-sales">
+  <section class="kpis" id="kpis"></section>
+  <div class="grid">
+    <section class="card span-8">
+      <div class="head"><div><h3>จำนวนครั้งที่จ่ายยารายวัน</h3><p class="sub" id="s-trend"></p></div>
+        <div class="legend"><span><i></i>รายวัน</span><span><i class="dash"></i>ค่าเฉลี่ย 7 วัน</span><span><i class="box"></i>เสาร์–อาทิตย์</span></div></div>
+      <div id="c-trend"></div>
+    </section>
+    <section class="card span-4">
+      <h3>สัญญาณที่ควรตรวจสอบ</h3><p class="sub">สรุปจากการเทียบข้อมูลจ่ายยากับสต็อก</p>
+      <div class="alerts" id="alerts"></div>
+    </section>
+
+    <section class="card span-6">
+      <h3>ยาที่ถูกจ่ายบ่อยที่สุด 10 อันดับ</h3><p class="sub" id="s-top"></p><div id="c-top"></div>
+    </section>
+    <section class="card span-6">
+      <h3>จำนวนครั้งที่จ่ายแยกตามหมวดยา</h3><p class="sub" id="s-cat"></p><div id="c-cat"></div>
+    </section>
+
+    <section class="card span-4"><h3>ช่วงเวลาที่จ่ายยา (รายชั่วโมง)</h3><p class="sub" id="s-hour"></p><div id="c-hour"></div></section>
+    <section class="card span-4"><h3>จ่ายยาตามวันในสัปดาห์</h3><p class="sub" id="s-wd"></p><div id="c-wd"></div></section>
+    <section class="card span-4"><h3>ภาระงานแยกตามเภสัชกร</h3><p class="sub" id="s-rx"></p><div id="c-rx"></div></section>
+
+    <section class="card span-6"><h3>มูลค่ายาคงคลังแยกตามหมวด</h3><p class="sub" id="s-cv"></p><div id="c-cv"></div></section>
+    <section class="card span-6"><h3>อายุคงเหลือของยาในสต็อก (ล็อตที่ใช้งานได้)</h3><p class="sub" id="s-bk"></p><div id="c-bk"></div></section>
+
+    <section class="card span-6"><h3>ยาที่ใกล้ถึงจุดสั่งซื้อ (ยอดคงเหลือ ÷ reorder level)</h3><p class="sub" id="s-ro"></p><div id="c-ro"></div></section>
+    <section class="card span-6"><h3>ล็อตที่จะหมดอายุภายใน 90 วัน</h3><p class="sub" id="s-near"></p><div class="scroll" id="t-near"></div></section>
+
+    <section class="card span-6"><h3>ล็อตที่ไม่ใช่สถานะใช้งานได้</h3><p class="sub">ล็อตที่ไม่นับเป็นสต็อกใช้งานได้ · สถานะประเมินจากวันหมดอายุและคุณภาพข้อมูล</p><div class="scroll" id="t-watch"></div></section>
+    <section class="card span-6"><h3>หมายเหตุคุณภาพข้อมูล</h3><p class="sub">สิ่งที่พบระหว่างประมวลผล และวิธีที่ Dashboard จัดการ</p><ul class="dq" id="dq"></ul></section>
+  </div>
+</div>
+
+<!-- ===== Drug Overview ===== -->
+<div class="tabpane" id="pane-overview">
+  <div class="note" id="ov-note"><span aria-hidden="true">▲</span><div><b>บัญชียา v2.0 มี 250 รายการใหม่ที่ยังไม่ได้ตรวจทานรายตัว</b> — ชื่อสามัญ ความแรง และรหัส ATC อ้างอิง WHO ATC/DDD Index แต่ควรสุ่มตรวจก่อนนำไปใช้งานจริง · รายการใหม่ทั้งหมดยังไม่มีข้อมูลสต็อก</div></div>
+  <section class="kpis" id="ov-kpis"></section>
+  <div class="grid">
+    <section class="card span-6">
+      <div class="head"><div><h3>จำนวนยาแยกตามหมวด</h3><p class="sub" id="s-ovcat"></p></div>
+        <div class="legend" id="ov-legend"><span><i class="sa"></i>บัญชีเดิม</span><span><i class="sbb"></i>เพิ่มใน v2.0</span></div></div>
+      <div id="ov-cat"></div>
+    </section>
+    <section class="card span-6"><h3>สัดส่วนยาที่มีสต็อก แยกตามหมวด</h3><p class="sub" id="s-ovcov"></p><div id="ov-cov"></div></section>
+    <section class="card span-4"><h3>กลุ่มยาตามระบบ ATC (ระดับ 1)</h3><p class="sub" id="s-ovatc"></p><div id="ov-atc"></div></section>
+    <section class="card span-4"><h3>รูปแบบยา (Dosage form)</h3><p class="sub" id="s-ovform"></p><div id="ov-form"></div></section>
+    <section class="card span-4"><h3>การกระจายของ Reorder level</h3><p class="sub" id="s-ovrl"></p><div id="ov-rl"></div></section>
+  </div>
+</div>
+
+<!-- ===== Inventory Planning ===== -->
+<div class="tabpane" id="pane-plan">
+  <section class="kpis" id="pl-kpis"></section>
+  <div class="grid">
+    <section class="card span-12">
+      <div class="ctl">
+        <label class="fld">เวลารอสินค้า (Lead time)<span class="rv"><span id="v-lead">7</span> วัน</span><input type="range" id="p-lead" min="1" max="30" value="7"></label>
+        <label class="fld">สำรองเผื่อ (Safety stock)<span class="rv"><span id="v-safe">7</span> วัน</span><input type="range" id="p-safe" min="0" max="30" value="7"></label>
+        <label class="fld">ต้องการให้สต็อกครอบคลุม<span class="rv"><span id="v-cover">30</span> วัน</span><input type="range" id="p-cover" min="14" max="90" value="30"></label>
+        <div style="flex:1;min-width:260px;font-size:12.5px;color:var(--ink-2)">
+          <b style="color:var(--ink)">วิธีคำนวณ</b> · อัตราใช้/วัน = จำนวนหน่วยที่จ่ายใน <span id="v-days"></span> วัน ÷ จำนวนวัน · จุดสั่งซื้อ = มากกว่าระหว่าง reorder level กับ อัตราใช้ × (lead time + safety stock) · ปริมาณแนะนำ = เป้าหมายสต็อก − ยอดที่ใช้ได้ (เป้าหมาย = มากกว่าระหว่าง reorder level กับ อัตราใช้ × จำนวนวันครอบคลุม) · ราคาต่อหน่วยใช้ต้นทุนเฉลี่ยของล็อตที่ใช้ได้
+        </div>
+      </div>
+    </section>
+    <section class="card span-6">
+      <h3>จำนวนวันที่สต็อกใช้ได้ (Days of cover)</h3><p class="sub" id="s-plcov"></p><div id="pl-cov"></div>
+    </section>
+    <section class="card span-6">
+      <h3>ประมาณการมูลค่าสั่งซื้อ แยกรายการ</h3><p class="sub" id="s-plcost"></p><div id="pl-cost"></div>
+    </section>
+    <section class="card span-12">
+      <div class="head"><div><h3>รายการแนะนำสั่งซื้อ</h3><p class="sub" id="s-pltab"></p></div>
+        <div class="seg" id="pl-seg" role="group" aria-label="กรองตามลำดับความสำคัญ"></div></div>
+      <div class="scroll" id="pl-table"></div>
+    </section>
+    <section class="card span-12">
+      <h3>ล็อตที่เสี่ยงหมดอายุก่อนใช้หมด (ภายใน 180 วัน)</h3>
+      <p class="sub">ประมาณจากอัตราการจ่ายเฉลี่ยต่อวัน โดยใช้ล็อตที่หมดอายุก่อนก่อน (FEFO) · ถ้าไม่มีการจ่ายเลย จำนวนที่เสี่ยงคือทั้งล็อต</p>
+      <div class="scroll" id="pl-risk"></div>
+    </section>
+  </div>
+</div>
+
+<!-- ===== Drug Explorer ===== -->
+<div class="tabpane" id="pane-explorer">
+  <section class="card" style="margin-bottom:16px">
+    <div class="ctl">
+      <label class="fld">ค้นหา (ชื่อ / SKU / ATC)<input type="search" id="ex-q" placeholder="เช่น amox, N02BE01, PARA500"></label>
+      <label class="fld">หมวดยา<select id="ex-cat"></select></label>
+      <label class="fld">รูปแบบยา<select id="ex-form"></select></label>
+      <label class="fld">สถานะ<select id="ex-status">
+        <option value="">ทั้งหมด</option><option value="stock">มีสต็อก</option><option value="none">ไม่มีสต็อก</option>
+        <option value="low">ต่ำกว่า reorder level</option><option value="near">ใกล้หมดอายุ ≤ 90 วัน</option><option value="disp">เคยถูกจ่ายในช่วงข้อมูล</option></select></label>
+      <label class="fld">แหล่งที่มา<select id="ex-src"><option value="">ทั้งหมด</option><option value="old">บัญชีเดิม (100)</option><option value="new">เพิ่มใน v2.0 (250)</option></select></label>
+      <button class="btn" id="ex-reset" type="button">ล้างตัวกรอง</button>
+      <span class="mini" id="ex-count" aria-live="polite"></span>
+    </div>
+  </section>
+  <div class="grid">
+    <section class="card span-8"><div class="scroll"><table id="ex-table"></table></div><div class="pager" id="ex-pager"></div></section>
+    <section class="card span-4"><div class="sticky" id="ex-detail"></div></section>
+  </div>
+</div>
+
+<!-- ===== Data Quality ===== -->
+<div class="tabpane" id="pane-quality">
+  <section class="kpis" id="qa-kpis"></section>
+  <div class="grid">
+    <section class="card span-6"><h3>ประเด็นที่พบ แยกตามไฟล์</h3><p class="sub" id="s-qafile"></p><div id="qa-files"></div></section>
+    <section class="card span-6"><h3>เปรียบเทียบก่อน–หลังทำความสะอาด</h3><p class="sub">ตัวเลขดิบจากไฟล์ เทียบกับตัวเลขที่ใช้ใน Dashboard</p><div class="scroll" id="qa-ba"></div></section>
+    <section class="card span-12">
+      <div class="head"><div><h3>Exception log</h3><p class="sub" id="s-qalog"></p></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><div class="seg" id="qa-seg" role="group" aria-label="กรองตามประเภท"></div><button class="btn" id="qa-dl" type="button">⬇ ดาวน์โหลด CSV</button></div></div>
+      <div class="scroll" id="qa-log"></div>
+    </section>
+    <section class="card span-12"><h3>หลักเกณฑ์ที่ใช้</h3>
+      <ul class="dq" style="margin-top:8px">
+        <li><span class="d">1</span><span><b>ไม่แก้ไฟล์ต้นฉบับ</b> — ทุกการแก้ ตัดออก หรือติดธง ถูกบันทึกใน exception log</span></li>
+        <li><span class="d">2</span><span><b>การจ่ายยาที่นับ</b> = qty มากกว่า 0 และอยู่ในช่วง 3 ต.ค. – 1 พ.ย. 2569 · void และรายการนอกช่วงไม่นับ</span></li>
+        <li><span class="d">3</span><span><b>สต็อกที่ใช้ได้ (active)</b> = ไม่ซ้ำ, qty ไม่ติดลบ, มีวันหมดอายุ และยังไม่หมดอายุ ณ 2 พ.ย. 2569</span></li>
+        <li><span class="d">4</span><span><b>ไม่เดาค่า</b> — ไม่เติมวันหมดอายุที่หายไป และไม่แก้ qty ติดลบเป็นบวก ให้ติดธงไว้เพื่อยืนยันกับต้นทาง</span></li>
+        <li><span class="d">5</span><span><b>ตัวเลขใน Inventory Planning</b> ใช้อัตราการจ่าย 30 วันย้อนหลังจากข้อมูลที่ผ่านการทำความสะอาดแล้ว</span></li>
+      </ul></section>
+  </div>
+</div>
+
+</main>
+<footer>แหล่งข้อมูล: dispense-log.json, stock.json, drugs.json (ข้อมูลหลังทำความสะอาด ดูแท็บคุณภาพข้อมูล) · ข้อมูล ณ <span id="f-asof"></span> · รายการ void และรายการนอกช่วงเวลาไม่ถูกนับในตัวเลขการจ่ายยา · มูลค่าสต็อกคำนวณจากล็อต active เท่านั้น</footer>
+<div id="tip" role="tooltip"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
