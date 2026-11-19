@@ -6,7 +6,182 @@
 <title>Dashboard ร้านยาจำลอง — การจ่ายยาและยาคงคลัง</title>
 <meta name="description" content="Dashboard ร้านยาจำลอง — การจ่ายยาและยาคงคลัง (ข้อมูลเพื่อการเรียนเท่านั้น)">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect x=%273%27 y=%273%27 width=%2718%27 height=%2718%27 rx=%273%27 fill=%27%232a78d6%27/%3E%3Cpath d=%27M12 8v8M8 12h8%27 stroke=%27white%27 stroke-width=%272.5%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#eef2f8; --surface:#ffffff; --surface-2:#f6f8fc; --border:#e1e7f0;
+  --ink:#0f1b2d; --ink-2:#4a586d; --ink-3:#7b889c;
+  --blue:#2a78d6; --blue-2:#184f95; --blue-soft:#e6f0fc; --blue-line:#9ec5f4;
+  --orange:#eb6834; --orange-soft:#fdeee7; --red:#e34948; --red-soft:#fdecec;
+  --green:#008300; --green-soft:#e4f3e4;
+  --grid:#e6ebf3; --shadow:0 1px 2px rgba(15,27,45,.05),0 8px 24px rgba(15,27,45,.06);
+  --weekend:rgba(120,135,160,.10);
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#0c1118; --surface:#151b25; --surface-2:#1a2230; --border:#263041;
+  --ink:#eef2f8; --ink-2:#b7c2d3; --ink-3:#8493a8;
+  --blue:#3987e5; --blue-2:#184f95; --blue-soft:#14263d; --blue-line:#3b6aa6;
+  --orange:#e8743f; --orange-soft:#3a2418; --red:#e66767; --red-soft:#3a1c1c;
+  --green:#0ca30c; --green-soft:#16301a;
+  --grid:#232d3d; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  --weekend:rgba(160,175,200,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#0c1118; --surface:#151b25; --surface-2:#1a2230; --border:#263041;
+    --ink:#eef2f8; --ink-2:#b7c2d3; --ink-3:#8493a8;
+    --blue:#3987e5; --blue-2:#184f95; --blue-soft:#14263d; --blue-line:#3b6aa6;
+    --orange:#e8743f; --orange-soft:#3a2418; --red:#e66767; --red-soft:#3a1c1c;
+    --green:#0ca30c; --green-soft:#16301a;
+    --grid:#232d3d; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+    --weekend:rgba(160,175,200,.08);
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:'Sarabun','Noto Sans Thai','Prompt',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;
+  font-size:15px;line-height:1.5}
+.hero{background:linear-gradient(120deg,#0d366b 0%,#184f95 45%,#2a78d6 100%);color:#fff;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;opacity:.18;
+  background:radial-gradient(circle at 85% 20%,#fff 0,transparent 40%),radial-gradient(circle at 10% 120%,#86b6ef 0,transparent 45%)}
+.hero-in{position:relative;max-width:1280px;margin:0 auto;padding:28px 24px 84px;display:flex;gap:16px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.hero h1{margin:0 0 4px;font-size:26px;font-weight:700;letter-spacing:.2px}
+.hero p{margin:0;opacity:.85;font-size:14px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.chip{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);padding:4px 12px;border-radius:999px;font-size:12.5px;backdrop-filter:blur(4px)}
+.tbtn{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);color:#fff;padding:8px 14px;border-radius:10px;cursor:pointer;font:inherit;font-size:13px}
+.tbtn:hover{background:rgba(255,255,255,.26)}
+main{max-width:1280px;margin:-64px auto 40px;padding:0 24px;position:relative}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:18px 20px;min-width:0}
+.span-12{grid-column:span 12}.span-8{grid-column:span 8}.span-6{grid-column:span 6}.span-4{grid-column:span 4}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:16px}
+.kpi{position:relative;overflow:hidden;padding:18px 18px 16px}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--blue)}
+.kpi.warn::before{background:var(--orange)}
+.kpi .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--blue-soft);color:var(--blue);margin-bottom:10px}
+.kpi.warn .ic{background:var(--orange-soft);color:var(--orange)}
+.kpi .lb{font-size:13px;color:var(--ink-2);font-weight:600}
+.kpi .val{font-size:34px;font-weight:700;line-height:1.15;margin:2px 0;font-variant-numeric:tabular-nums}
+.kpi .val small{font-size:15px;font-weight:600;color:var(--ink-2);margin-left:4px}
+.kpi .ft{font-size:12.5px;color:var(--ink-3)}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--orange-soft);color:var(--orange);margin-bottom:6px}
+.card h3{margin:0;font-size:16px;font-weight:700}
+.card .sub{margin:2px 0 12px;color:var(--ink-2);font-size:13px}
+.card .sub b{color:var(--ink)}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--ink-2);align-items:center;flex-wrap:wrap}
+.legend i{display:inline-block;width:18px;height:0;border-top:3px solid var(--blue);vertical-align:middle;margin-right:5px;border-radius:2px}
+.legend i.dash{border-top:2px dashed var(--orange)}
+.legend i.box{width:12px;height:12px;border:0;background:var(--weekend);border-radius:3px;box-shadow:inset 0 0 0 1px var(--border)}
+svg text{font-family:inherit;fill:var(--ink-3);font-size:11.5px}
+svg .grid{stroke:var(--grid);stroke-width:1}
+.hb{display:grid;grid-template-columns:minmax(110px,38%) 1fr auto;gap:10px;align-items:center;padding:5px 0;cursor:default}
+.hb:hover .hb-f{filter:brightness(1.12)}
+.hb-l{font-size:13px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb-t{background:var(--surface-2);border-radius:6px;height:16px;position:relative}
+.hb-f{height:100%;border-radius:0 6px 6px 0;background:var(--blue);animation:grow .8s cubic-bezier(.2,.8,.2,1)}
+@keyframes grow{from{width:0!important}}
+.hb-v{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;min-width:64px;text-align:right}
+.hb-ref{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink-2);border-radius:2px}
+.alerts{display:flex;flex-direction:column;gap:10px}
+.al{display:grid;grid-template-columns:34px 1fr;gap:10px;padding:10px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border)}
+.al .i{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:800}
+.al.r .i{background:var(--red-soft);color:var(--red)}
+.al.o .i{background:var(--orange-soft);color:var(--orange)}
+.al.b .i{background:var(--blue-soft);color:var(--blue)}
+.al b{display:block;font-size:13.5px}
+.al span{font-size:12.5px;color:var(--ink-2)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--ink-3);font-weight:600;font-size:12px;padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:8px;border-bottom:1px solid var(--grid);vertical-align:top}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700}
+.pill.o{background:var(--orange-soft);color:var(--orange)}
+.pill.r{background:var(--red-soft);color:var(--red)}
+.pill.b{background:var(--blue-soft);color:var(--blue)}
+.scroll{overflow-x:auto}
+.dq{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13px}
+.dq li{display:grid;grid-template-columns:22px 1fr;gap:8px;color:var(--ink-2)}
+.dq li b{color:var(--ink)}
+.dq .d{width:22px;height:22px;border-radius:50%;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;font-size:12px;font-weight:800}
+footer{max-width:1280px;margin:0 auto;padding:0 24px 40px;color:var(--ink-3);font-size:12.5px}
+#tip{position:fixed;top:0;left:0;pointer-events:none;opacity:0;transition:opacity .12s;z-index:50;
+  background:var(--ink);color:var(--bg);padding:8px 11px;border-radius:9px;font-size:12.5px;line-height:1.45;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:260px}
+#tip b{display:block;margin-bottom:1px}
+@media (max-width:1100px){
+  .kpis{grid-template-columns:repeat(3,1fr)}
+  .span-8,.span-6,.span-4{grid-column:span 12}
+}
+@media (max-width:700px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .hero h1{font-size:21px}
+  .hb{grid-template-columns:minmax(90px,42%) 1fr auto}
+  main,.hero-in,footer{padding-left:14px;padding-right:14px}
+}
+@media (max-width:460px){.kpis{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.hb-f{animation:none}}
+
+/* ---------- tabs & extra components ---------- */
+.tabs{flex-basis:100%;display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+.tab-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;padding:9px 18px;border-radius:12px;cursor:pointer;font:inherit;font-size:14px;font-weight:600;transition:background .15s}
+.tab-btn:hover{background:rgba(255,255,255,.22)}
+.tab-btn[aria-selected="true"]{background:#fff;color:#184f95;border-color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.22)}
+.tab-btn:focus-visible,.btn:focus-visible,.seg button:focus-visible,tr.clk:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.tabpane{display:none}
+.tabpane.on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}}
+.note{display:flex;gap:10px;align-items:flex-start;padding:12px 16px;border-radius:14px;background:var(--orange-soft);border:1px solid var(--orange);margin-bottom:16px;font-size:13.5px;box-shadow:var(--shadow)}
+.note>span{color:var(--orange);font-weight:800}
+.note b{color:var(--orange)}
+.ctl{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.fld{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2);font-weight:600}
+.fld input[type=search],.fld select{font:inherit;font-size:14px;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--surface-2);color:var(--ink);min-width:150px;max-width:230px}
+.fld input[type=search]{min-width:230px}
+.fld input[type=range]{width:230px;accent-color:var(--blue)}
+.fld .rv{color:var(--ink);font-size:16px;font-weight:700}
+.btn{font:inherit;font-size:13px;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface-2);color:var(--ink);cursor:pointer}
+.btn:hover:not(:disabled){border-color:var(--blue)}
+.btn:disabled{opacity:.45;cursor:default}
+.seg{display:inline-flex;gap:6px;flex-wrap:wrap}
+.seg button{font:inherit;font-size:12.5px;padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface-2);color:var(--ink-2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.legend i.sa{width:12px;height:12px;border:0;background:var(--blue);border-radius:3px}
+.legend i.sbb{width:12px;height:12px;border:0;background:var(--blue-line);border-radius:3px}
+.sb{display:flex;gap:2px;height:100%;width:100%}
+.sb-a{background:var(--blue)}
+.sb-b{background:var(--blue-line)}
+.sb>div:last-child{border-radius:0 6px 6px 0}
+.hb.clk{cursor:pointer}
+.hb-ref2{position:absolute;top:-3px;bottom:-3px;width:0;border-left:2px dashed var(--orange)}
+tbody tr.clk{cursor:pointer}
+tbody tr.clk:hover td{background:var(--surface-2)}
+tbody tr.sel td{background:var(--blue-soft)}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--ink)}
+.pill{white-space:nowrap}
+.pill.g{background:var(--green-soft);color:var(--green)}
+.pill.m{background:var(--surface-2);color:var(--ink-3);border:1px solid var(--border)}
+.sticky{position:sticky;top:12px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.st{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:8px 11px}
+.st small{display:block;color:var(--ink-3);font-size:11.5px}
+.st b{font-size:17px;font-variant-numeric:tabular-nums}
+.st b em{font-style:normal;font-size:12px;font-weight:600;color:var(--ink-2);margin-left:3px}
+.dh{font-size:19px;font-weight:700;margin:0}
+.dtags{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.atcchain{display:flex;gap:4px;flex-wrap:wrap;margin:4px 0 2px}
+.atcchain code{background:var(--blue-soft);color:var(--blue);padding:2px 7px;border-radius:7px;font-size:12px;font-weight:700}
+.dsec{font-size:12.5px;font-weight:700;color:var(--ink-2);margin:14px 0 4px}
+.pager{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--ink-2);flex-wrap:wrap}
+.empty{color:var(--ink-3);padding:28px 10px;text-align:center;font-size:13.5px}
+.mini{font-size:12px;color:var(--ink-3)}
+@media (max-width:1100px){.sticky{position:static}}
+</style>
 </head>
 <body>
 <header class="hero"><div class="hero-in">
@@ -152,7 +327,531 @@
 <footer>แหล่งข้อมูล: dispense-log.json, stock.json, drugs.json (ข้อมูลหลังทำความสะอาด ดูแท็บคุณภาพข้อมูล) · ข้อมูล ณ <span id="f-asof"></span> · รายการ void และรายการนอกช่วงเวลาไม่ถูกนับในตัวเลขการจ่ายยา · มูลค่าสต็อกคำนวณจากล็อต active เท่านั้น</footer>
 <div id="tip" role="tooltip"></div>
 
-<script src="js/data.js"></script>
-<script src="js/app.js"></script>
+<script>
+/* ข้อมูลจำลองของร้านยา (หลังทำความสะอาดแล้ว) — แก้ข้อมูลที่ไฟล์นี้ */
+const D = {"asof":"2026-11-02","period":["2026-10-03","2026-11-01"],"pdays":30,"kpi":{"dispenses":147,"patients":55,"repeat":46,"stock_value":11451.4,"quar_value":560.0,"low":2,"stock_skus":30,"near_n":6,"near_v":885.9,"incidents":0,"voids":2,"avg_day":4.9,"total_catalog":100,"stock_lots":49},"days":[{"d":"2026-10-03","n":4},{"d":"2026-10-04","n":2},{"d":"2026-10-05","n":5},{"d":"2026-10-06","n":6},{"d":"2026-10-07","n":2},{"d":"2026-10-08","n":8},{"d":"2026-10-09","n":5},{"d":"2026-10-10","n":5},{"d":"2026-10-11","n":5},{"d":"2026-10-12","n":5},{"d":"2026-10-13","n":3},{"d":"2026-10-14","n":5},{"d":"2026-10-15","n":3},{"d":"2026-10-16","n":1},{"d":"2026-10-17","n":9},{"d":"2026-10-18","n":4},{"d":"2026-10-19","n":9},{"d":"2026-10-20","n":5},{"d":"2026-10-21","n":7},{"d":"2026-10-22","n":5},{"d":"2026-10-23","n":4},{"d":"2026-10-24","n":5},{"d":"2026-10-25","n":3},{"d":"2026-10-26","n":5},{"d":"2026-10-27","n":8},{"d":"2026-10-28","n":5},{"d":"2026-10-29","n":3},{"d":"2026-10-30","n":6},{"d":"2026-10-31","n":8},{"d":"2026-11-01","n":2}],"hours":[{"h":8,"n":13},{"h":9,"n":13},{"h":10,"n":11},{"h":11,"n":7},{"h":12,"n":13},{"h":13,"n":18},{"h":14,"n":15},{"h":15,"n":16},{"h":16,"n":11},{"h":17,"n":6},{"h":18,"n":11},{"h":19,"n":13}],"top":[{"sku":"AMOX500","name":"Amoxicillin 500 mg","n":16,"qty":202,"unit":"capsule","cat":"ยาปฏิชีวนะ"},{"sku":"OMEP20","name":"Omeprazole 20 mg","n":13,"qty":780,"unit":"capsule","cat":"ทางเดินอาหาร"},{"sku":"METF500","name":"Metformin 500 mg","n":13,"qty":690,"unit":"tablet","cat":"เบาหวาน"},{"sku":"PARA500","name":"Paracetamol 500 mg","n":11,"qty":183,"unit":"tablet","cat":"แก้ปวดและต้านการอักเสบ"},{"sku":"LORA10","name":"Loratadine 10 mg","n":10,"qty":147.5,"unit":"tablet","cat":"แก้แพ้"},{"sku":"AMLO5","name":"Amlodipine 5 mg","n":9,"qty":510,"unit":"tablet","cat":"หัวใจและความดันโลหิต"},{"sku":"IBU400","name":"Ibuprofen 400 mg","n":8,"qty":130,"unit":"tablet","cat":"แก้ปวดและต้านการอักเสบ"},{"sku":"ENAL5","name":"Enalapril 5 mg","n":7,"qty":570,"unit":"tablet","cat":"หัวใจและความดันโลหิต"},{"sku":"SIMVA20","name":"Simvastatin 20 mg","n":7,"qty":450,"unit":"tablet","cat":"ไขมันในเลือด"},{"sku":"CPM4","name":"Chlorpheniramine 4 mg","n":7,"qty":113,"unit":"tablet","cat":"แก้แพ้"}],"cats":[{"name":"แก้ปวดและต้านการอักเสบ","n":27},{"name":"แก้แพ้","n":24},{"name":"ยาปฏิชีวนะ","n":21},{"name":"หัวใจและความดันโลหิต","n":18},{"name":"ทางเดินอาหาร","n":17},{"name":"เบาหวาน","n":13},{"name":"ต้านเชื้อรา ไวรัส และพยาธิ","n":7},{"name":"ไขมันในเลือด","n":7},{"name":"ทางเดินหายใจ","n":5},{"name":"ผิวหนัง","n":4},{"name":"วิตามินและเกลือแร่","n":2},{"name":"ตาและหู","n":1},{"name":"ไม่อยู่ในบัญชียา","n":1}],"rx":[{"name":"RX-01","n":45},{"name":"RX-02","n":56},{"name":"RX-03","n":46}],"wd":[{"name":"จ.","n":24},{"name":"อ.","n":22},{"name":"พ.","n":19},{"name":"พฤ.","n":19},{"name":"ศ.","n":16},{"name":"ส.","n":31},{"name":"อา.","n":16}],"reorder":[{"sku":"DICLO25","name":"Diclofenac sodium 25 mg","qty":150,"rl":200,"pct":75.0,"unit":"tablet"},{"sku":"AZI250","name":"Azithromycin 250 mg","qty":48,"rl":60,"pct":80.0,"unit":"tablet"},{"sku":"PARA120S","name":"Paracetamol 120 mg/5 mL, 60 mL","qty":20,"rl":20,"pct":100.0,"unit":"bottle"},{"sku":"LORA10","name":"Loratadine 10 mg","qty":310,"rl":300,"pct":103.3,"unit":"tablet"},{"sku":"ASA81","name":"Aspirin 81 mg","qty":330,"rl":300,"pct":110.0,"unit":"tablet"},{"sku":"CEPH500","name":"Cephalexin 500 mg","qty":230,"rl":200,"pct":115.0,"unit":"capsule"},{"sku":"AMOX125S","name":"Amoxicillin 125 mg/5 mL, 60 mL","qty":12,"rl":10,"pct":120.0,"unit":"bottle"},{"sku":"CETI10","name":"Cetirizine 10 mg","qty":360,"rl":300,"pct":120.0,"unit":"tablet"},{"sku":"CLOTRI-C","name":"Clotrimazole 1%, 15 g","qty":24,"rl":20,"pct":120.0,"unit":"tube"},{"sku":"DEXTRO-S","name":"Dextromethorphan 15 mg/5 mL, 60 mL","qty":24,"rl":20,"pct":120.0,"unit":"bottle"},{"sku":"ENAL5","name":"Enalapril 5 mg","qty":240,"rl":200,"pct":120.0,"unit":"tablet"},{"sku":"SALB-INH","name":"Salbutamol 100 mcg/dose, 200 doses","qty":12,"rl":10,"pct":120.0,"unit":"inhaler"},{"sku":"IBU400","name":"Ibuprofen 400 mg","qty":380,"rl":300,"pct":126.7,"unit":"tablet"},{"sku":"CPM4","name":"Chlorpheniramine 4 mg","qty":650,"rl":500,"pct":130.0,"unit":"tablet"},{"sku":"MEFE250","name":"Mefenamic acid 250 mg","qty":260,"rl":200,"pct":130.0,"unit":"capsule"},{"sku":"OMEP20","name":"Omeprazole 20 mg","qty":390,"rl":300,"pct":130.0,"unit":"capsule"},{"sku":"PVP-I","name":"Povidone-iodine 10%, 30 mL","qty":26,"rl":20,"pct":130.0,"unit":"bottle"},{"sku":"LOSAR50","name":"Losartan 50 mg","qty":410,"rl":300,"pct":136.7,"unit":"tablet"},{"sku":"SIMVA20","name":"Simvastatin 20 mg","qty":410,"rl":300,"pct":136.7,"unit":"tablet"},{"sku":"VITC500","name":"Ascorbic acid 500 mg","qty":410,"rl":300,"pct":136.7,"unit":"tablet"},{"sku":"AMCLAV875","name":"Amoxicillin/Clavulanic acid 875/125 mg","qty":84,"rl":60,"pct":140.0,"unit":"tablet"},{"sku":"AMOX500","name":"Amoxicillin 500 mg","qty":420,"rl":300,"pct":140.0,"unit":"capsule"},{"sku":"CAP-ED","name":"Chloramphenicol 0.5%, 10 mL","qty":14,"rl":10,"pct":140.0,"unit":"bottle"},{"sku":"LOPE2","name":"Loperamide 2 mg","qty":140,"rl":100,"pct":140.0,"unit":"capsule"},{"sku":"AMLO5","name":"Amlodipine 5 mg","qty":470,"rl":300,"pct":156.7,"unit":"tablet"},{"sku":"DOMP10","name":"Domperidone 10 mg","qty":320,"rl":200,"pct":160.0,"unit":"tablet"},{"sku":"HC1-C","name":"Hydrocortisone 1%, 15 g","qty":16,"rl":10,"pct":160.0,"unit":"tube"},{"sku":"METRO400","name":"Metronidazole 400 mg","qty":160,"rl":100,"pct":160.0,"unit":"tablet"},{"sku":"METF500","name":"Metformin 500 mg","qty":880,"rl":500,"pct":176.0,"unit":"tablet"},{"sku":"PARA500","name":"Paracetamol 500 mg","qty":1020,"rl":500,"pct":204.0,"unit":"tablet"}],"catval":[{"name":"ยาปฏิชีวนะ","v":2663.4},{"name":"ทางเดินหายใจ","v":1740.0},{"name":"แก้ปวดและต้านการอักเสบ","v":1392.5},{"name":"ผิวหนัง","v":1132.0},{"name":"หัวใจและความดันโลหิต","v":1099.0},{"name":"ต้านเชื้อรา ไวรัส และพยาธิ","v":768.0},{"name":"ตาและหู","v":630.0},{"name":"ทางเดินอาหาร","v":616.0},{"name":"เบาหวาน","v":352.0},{"name":"แก้แพ้","v":348.5},{"name":"ไม่อยู่ในบัญชียา","v":300.0},{"name":"ไขมันในเลือด","v":266.5},{"name":"วิตามินและเกลือแร่","v":143.5}],"buckets":[{"name":"≤ 90 วัน","n":6,"v":885.9},{"name":"91–180 วัน","n":1,"v":99.0},{"name":"181–365 วัน","n":5,"v":1698.0},{"name":"> 365 วัน","n":30,"v":8768.5}],"near":[{"sku":"OMEP20","name":"Omeprazole 20 mg","lot":"OM2411","expiry":"2026-12-15","days":43,"qty":90,"v":81.0},{"sku":"PARA120S","name":"Paracetamol 120 mg/5 mL, 60 mL","lot":"PS2410","expiry":"2026-12-31","days":59,"qty":6,"v":105.0},{"sku":"DEXTRO-S","name":"Dextromethorphan 15 mg/5 mL, 60 mL","lot":"DX2411","expiry":"2027-01-10","days":69,"qty":9,"v":225.0},{"sku":"AZI250","name":"Azithromycin 250 mg","lot":"AZ2503","expiry":"2027-01-15","days":74,"qty":48,"v":326.4},{"sku":"VITC500","name":"Ascorbic acid 500 mg","lot":"VC2502","expiry":"2027-01-25","days":84,"qty":150,"v":52.5},{"sku":"AMLO5","name":"Amlodipine 5 mg","lot":"AM2502","expiry":"2027-01-31","days":90,"qty":120,"v":96.0}],"watch":[{"sku":"AMOX125S","name":"Amoxicillin 125 mg/5 mL, 60 mL","lot":"AS2410","status":"expired","expiry":"2026-10-20","qty":4},{"sku":"CPM4","name":"Chlorpheniramine 4 mg","lot":"CP2408","status":"expired","expiry":"2026-08-31","qty":0},{"sku":"IBU400","name":"Ibuprofen 400 mg","lot":"IB2509","status":"expired","expiry":"2026-03-31","qty":200},{"sku":"SIMVA20","name":"Simvastatin 20 mg","lot":"SV2509","status":"unknown_expiry","expiry":null,"qty":180},{"sku":"CETI10","name":"Cetirizine 10 mg","lot":"CT2509","status":"error","expiry":"2028-08-31","qty":-20},{"sku":"CAP-ED","name":"Chloramphenicol 0.5%, 10 mL","lot":"CA2409","status":"expired","expiry":"2026-09-30","qty":3},{"sku":"METF500","name":"Metformin 500 mg","lot":"MF5003","status":"duplicate","expiry":"2027-12-31","qty":380}],"incidents":[],"dq":{"excluded":[["D0030","void"],["D0093","void"],["D0149","นอกช่วงเวลา"]],"no_stock_lot":[["D0045","AMLO5","LS2505"]],"exp_dispense":[["D0014","CAP-ED","CA2409","2026-09-30","2026-10-06"],["D0106","AMOX125S","AS2410","2026-10-20","2026-10-24"]],"bad_status":[["D0014","CAP-ED","CA2409","expired"],["D0049","AMOX125S","AS2410","expired"],["D0106","AMOX125S","AS2410","expired"]]},"drugs":[{"sku":"PARA500","name":"Paracetamol","strength":"500 mg","form":"tablet","unit":"tablet","cat":"แก้ปวดและต้านการอักเสบ","atc":"N02BE01","rl":500,"new":false,"unreg":false,"q":1020,"qq":0,"val":459.0,"cost":0.45,"nlots":2,"exp":"2028-02-29","dn":11,"dq":183,"dp":10,"last":"2026-10-26","dd":[["2026-10-05",10],["2026-10-07",30],["2026-10-08",10],["2026-10-09",6],["2026-10-10",15],["2026-10-11",30],["2026-10-13",10],["2026-10-13",15],["2026-10-14",30],["2026-10-19",15],["2026-10-26",12]],"lots":[{"lot":"PA2501","exp":"2028-02-29","q":420,"st":"active","cost":0.45,"rec":"2026-03-10"},{"lot":"PA2509","exp":"2028-08-31","q":600,"st":"active","cost":0.45,"rec":"2026-09-12"}]},{"sku":"PARA120S","name":"Paracetamol","strength":"120 mg/5 mL, 60 mL","form":"syrup","unit":"bottle","cat":"แก้ปวดและต้านการอักเสบ","atc":"N02BE01","rl":20,"new":false,"unreg":false,"q":20,"qq":0,"val":357.0,"cost":17.85,"nlots":2,"exp":"2026-12-31","dn":4,"dq":6,"dp":3,"last":"2026-10-26","dd":[["2026-10-11",2],["2026-10-17",1],["2026-10-22",1],["2026-10-26",2]],"lots":[{"lot":"PS2410","exp":"2026-12-31","q":6,"st":"active","cost":17.5,"rec":"2025-10-20"},{"lot":"PS2506","exp":"2027-05-31","q":14,"st":"active","cost":18.0,"rec":"2026-06-05"}]},{"sku":"IBU400","name":"Ibuprofen","strength":"400 mg","form":"tablet","unit":"tablet","cat":"แก้ปวดและต้านการอักเสบ","atc":"M01AE01","rl":300,"new":false,"unreg":false,"q":380,"qq":0,"val":342.0,"cost":0.9,"nlots":2,"exp":"2028-06-30","dn":8,"dq":130,"dp":8,"last":"2026-10-31","dd":[["2026-10-06",30],["2026-10-08",20],["2026-10-09",12],["2026-10-19",30],["2026-10-27",10],["2026-10-28",12],["2026-10-30",6],["2026-10-31",10]],"lots":[{"lot":"IB2509","exp":"2026-03-31","q":200,"st":"expired","cost":0.9,"rec":"2026-09-14"},{"lot":"IB2507","exp":"2028-06-30","q":380,"st":"active","cost":0.9,"rec":"2026-07-15"}]},{"sku":"IBU100S","name":"Ibuprofen","strength":"100 mg/5 mL, 60 mL","form":"suspension","unit":"bottle","cat":"แก้ปวดและต้านการอักเสบ","atc":"M01AE01","rl":10,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"NAPRO250","name":"Naproxen","strength":"250 mg","form":"tablet","unit":"tablet","cat":"แก้ปวดและต้านการอักเสบ","atc":"M01AE02","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"DICLO25","name":"Diclofenac sodium","strength":"25 mg","form":"tablet","unit":"tablet","cat":"แก้ปวดและต้านการอักเสบ","atc":"M01AB05","rl":200,"new":false,"unreg":false,"q":150,"qq":0,"val":52.5,"cost":0.35,"nlots":1,"exp":"2027-12-31","dn":1,"dq":10,"dp":1,"last":"2026-10-06","dd":[["2026-10-06",10]],"lots":[{"lot":"DC2502","exp":"2027-12-31","q":150,"st":"active","cost":0.35,"rec":"2026-02-20"}]},{"sku":"DICLOGEL","name":"Diclofenac diethylamine","strength":"1%, 30 g","form":"gel","unit":"tube","cat":"แก้ปวดและต้านการอักเสบ","atc":"M02AA15","rl":10,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"MEFE250","name":"Mefenamic acid","strength":"250 mg","form":"capsule","unit":"capsule","cat":"แก้ปวดและต้านการอักเสบ","atc":"M01AG01","rl":200,"new":false,"unreg":false,"q":260,"qq":0,"val":182.0,"cost":0.7,"nlots":1,"exp":"2028-07-31","dn":3,"dq":52,"dp":3,"last":"2026-10-24","dd":[["2026-10-06",12],["2026-10-21",20],["2026-10-24",20]],"lots":[{"lot":"MF2508","exp":"2028-07-31","q":260,"st":"active","cost":0.7,"rec":"2026-08-08"}]},{"sku":"CELE200","name":"Celecoxib","strength":"200 mg","form":"capsule","unit":"capsule","cat":"แก้ปวดและต้านการอักเสบ","atc":"M01AH01","rl":60,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"AMOX500","name":"Amoxicillin","strength":"500 mg","form":"capsule","unit":"capsule","cat":"ยาปฏิชีวนะ","atc":"J01CA04","rl":300,"new":false,"unreg":false,"q":420,"qq":0,"val":660.0,"cost":1.5714,"nlots":2,"exp":"2027-09-30","dn":16,"dq":202,"dp":15,"last":"2026-10-31","dd":[["2026-10-03",10],["2026-10-03",10],["2026-10-03",15],["2026-10-10",10],["2026-10-10",10],["2026-10-17",10],["2026-10-20",10],["2026-10-21",6],["2026-10-21",10],["2026-10-23",10],["2026-10-24",15],["2026-10-26",20],["2026-10-27",30],["2026-10-29",20],["2026-10-31",6],["2026-10-31",10]],"lots":[{"lot":"AX2504","exp":"2027-09-30","q":180,"st":"active","cost":1.6,"rec":"2026-04-18"},{"lot":"AX2509","exp":"2028-03-31","q":240,"st":"active","cost":1.55,"rec":"2026-09-25"}]},{"sku":"AMOX125S","name":"Amoxicillin","strength":"125 mg/5 mL, 60 mL","form":"dry syrup","unit":"bottle","cat":"ยาปฏิชีวนะ","atc":"J01CA04","rl":10,"new":false,"unreg":false,"q":12,"qq":0,"val":396.0,"cost":33.0,"nlots":2,"exp":"2027-08-31","dn":2,"dq":2,"dp":2,"last":"2026-10-24","dd":[["2026-10-13",1],["2026-10-24",1]],"lots":[{"lot":"AS2410","exp":"2026-10-20","q":4,"st":"expired","cost":32.0,"rec":"2025-10-01"},{"lot":"AS2508","exp":"2027-08-31","q":12,"st":"active","cost":33.0,"rec":"2026-08-14"}]},{"sku":"AMCLAV875","name":"Amoxicillin/Clavulanic acid","strength":"875/125 mg","form":"tablet","unit":"tablet","cat":"ยาปฏิชีวนะ","atc":"J01CR02","rl":60,"new":false,"unreg":false,"q":84,"qq":0,"val":798.0,"cost":9.5,"nlots":1,"exp":"2027-12-31","dn":1,"dq":20,"dp":1,"last":"2026-10-17","dd":[["2026-10-17",20]],"lots":[{"lot":"AC2506","exp":"2027-12-31","q":84,"st":"active","cost":9.5,"rec":"2026-06-22"}]},{"sku":"DICLOX250","name":"Dicloxacillin","strength":"250 mg","form":"capsule","unit":"capsule","cat":"ยาปฏิชีวนะ","atc":"J01CF01","rl":200,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"CEPH500","name":"Cephalexin","strength":"500 mg","form":"capsule","unit":"capsule","cat":"ยาปฏิชีวนะ","atc":"J01DB01","rl":200,"new":false,"unreg":false,"q":230,"qq":0,"val":483.0,"cost":2.1,"nlots":1,"exp":"2027-11-30","dn":1,"dq":15,"dp":1,"last":"2026-10-30","dd":[["2026-10-30",15]],"lots":[{"lot":"CE2505","exp":"2027-11-30","q":230,"st":"active","cost":2.1,"rec":"2026-05-09"}]},{"sku":"AZI250","name":"Azithromycin","strength":"250 mg","form":"tablet","unit":"tablet","cat":"ยาปฏิชีวนะ","atc":"J01FA10","rl":60,"new":false,"unreg":false,"q":48,"qq":0,"val":326.4,"cost":6.8,"nlots":1,"exp":"2027-01-15","dn":1,"dq":6,"dp":1,"last":"2026-10-28","dd":[["2026-10-28",6]],"lots":[{"lot":"AZ2503","exp":"2027-01-15","q":48,"st":"active","cost":6.8,"rec":"2026-03-27"}]},{"sku":"DOXY100","name":"Doxycycline","strength":"100 mg","form":"capsule","unit":"capsule","cat":"ยาปฏิชีวนะ","atc":"J01AA02","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"NORF400","name":"Norfloxacin","strength":"400 mg","form":"tablet","unit":"tablet","cat":"ยาปฏิชีวนะ","atc":"J01MA06","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"CIPRO500","name":"Ciprofloxacin","strength":"500 mg","form":"tablet","unit":"tablet","cat":"ยาปฏิชีวนะ","atc":"J01MA02","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"COTRI480","name":"Sulfamethoxazole/Trimethoprim","strength":"400/80 mg","form":"tablet","unit":"tablet","cat":"ยาปฏิชีวนะ","atc":"J01EE01","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"NITRO100","name":"Nitrofurantoin","strength":"100 mg","form":"capsule","unit":"capsule","cat":"ยาปฏิชีวนะ","atc":"J01XE01","rl":60,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"METRO400","name":"Metronidazole","strength":"400 mg","form":"tablet","unit":"tablet","cat":"ต้านเชื้อรา ไวรัส และพยาธิ","atc":"P01AB01","rl":100,"new":false,"unreg":false,"q":160,"qq":0,"val":96.0,"cost":0.6,"nlots":1,"exp":"2028-06-30","dn":6,"dq":102,"dp":6,"last":"2026-11-01","dd":[["2026-10-04",10],["2026-10-05",12],["2026-10-05",20],["2026-10-08",30],["2026-10-17",20],["2026-11-01",10]],"lots":[{"lot":"MT2507","exp":"2028-06-30","q":160,"st":"active","cost":0.6,"rec":"2026-07-03"}]},{"sku":"FLUCO150","name":"Fluconazole","strength":"150 mg","form":"capsule","unit":"capsule","cat":"ต้านเชื้อรา ไวรัส และพยาธิ","atc":"J02AC01","rl":30,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"CLOTRI-C","name":"Clotrimazole","strength":"1%, 15 g","form":"cream","unit":"tube","cat":"ต้านเชื้อรา ไวรัส และพยาธิ","atc":"D01AC01","rl":20,"new":false,"unreg":false,"q":24,"qq":0,"val":672.0,"cost":28.0,"nlots":1,"exp":"2028-05-31","dn":1,"dq":2,"dp":1,"last":"2026-10-30","dd":[["2026-10-30",2]],"lots":[{"lot":"CL2506","exp":"2028-05-31","q":24,"st":"active","cost":28.0,"rec":"2026-06-11"}]},{"sku":"KETO-C","name":"Ketoconazole","strength":"2%, 15 g","form":"cream","unit":"tube","cat":"ต้านเชื้อรา ไวรัส และพยาธิ","atc":"D01AC08","rl":10,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"ACYC400","name":"Acyclovir","strength":"400 mg","form":"tablet","unit":"tablet","cat":"ต้านเชื้อรา ไวรัส และพยาธิ","atc":"J05AB01","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"ACYC-C","name":"Acyclovir","strength":"5%, 5 g","form":"cream","unit":"tube","cat":"ต้านเชื้อรา ไวรัส และพยาธิ","atc":"D06BB03","rl":10,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"ALBEN200","name":"Albendazole","strength":"200 mg","form":"tablet","unit":"tablet","cat":"ต้านเชื้อรา ไวรัส และพยาธิ","atc":"P02CA03","rl":50,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"MEBEN100","name":"Mebendazole","strength":"100 mg","form":"tablet","unit":"tablet","cat":"ต้านเชื้อรา ไวรัส และพยาธิ","atc":"P02CA01","rl":50,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"NYST-S","name":"Nystatin","strength":"100,000 U/mL, 12 mL","form":"oral suspension","unit":"bottle","cat":"ต้านเชื้อรา ไวรัส และพยาธิ","atc":"A07AA02","rl":5,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"AMLO5","name":"Amlodipine","strength":"5 mg","form":"tablet","unit":"tablet","cat":"หัวใจและความดันโลหิต","atc":"C08CA01","rl":300,"new":false,"unreg":false,"q":470,"qq":0,"val":376.0,"cost":0.8,"nlots":2,"exp":"2027-01-31","dn":9,"dq":510,"dp":8,"last":"2026-10-28","dd":[["2026-10-12",30],["2026-10-12",30],["2026-10-14",90],["2026-10-19",90],["2026-10-20",60],["2026-10-22",90],["2026-10-25",30],["2026-10-25",60],["2026-10-28",30]],"lots":[{"lot":"AM2502","exp":"2027-01-31","q":120,"st":"active","cost":0.8,"rec":"2026-02-14"},{"lot":"AM2508","exp":"2028-07-31","q":350,"st":"active","cost":0.8,"rec":"2026-08-20"}]},{"sku":"AMLO10","name":"Amlodipine","strength":"10 mg","form":"tablet","unit":"tablet","cat":"หัวใจและความดันโลหิต","atc":"C08CA01","rl":200,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"ENAL5","name":"Enalapril","strength":"5 mg","form":"tablet","unit":"tablet","cat":"หัวใจและความดันโลหิต","atc":"C09AA02","rl":200,"new":false,"unreg":false,"q":240,"qq":0,"val":132.0,"cost":0.55,"nlots":1,"exp":"2027-10-31","dn":7,"dq":570,"dp":7,"last":"2026-10-29","dd":[["2026-10-11",60],["2026-10-12",90],["2026-10-17",60],["2026-10-17",90],["2026-10-23",90],["2026-10-27",90],["2026-10-29",90]],"lots":[{"lot":"EN2504","exp":"2027-10-31","q":240,"st":"active","cost":0.55,"rec":"2026-04-02"}]},{"sku":"LOSAR50","name":"Losartan","strength":"50 mg","form":"tablet","unit":"tablet","cat":"หัวใจและความดันโลหิต","atc":"C09CA01","rl":300,"new":false,"unreg":false,"q":410,"qq":0,"val":492.0,"cost":1.2,"nlots":2,"exp":"2027-12-31","dn":2,"dq":120,"dp":2,"last":"2026-10-25","dd":[["2026-10-12",60],["2026-10-25",60]],"lots":[{"lot":"LS2505","exp":"2027-12-31","q":210,"st":"active","cost":1.2,"rec":"2026-05-16"},{"lot":"LS2509","exp":"2028-03-31","q":200,"st":"active","cost":1.2,"rec":"2026-09-22"}]},{"sku":"HCTZ25","name":"Hydrochlorothiazide","strength":"25 mg","form":"tablet","unit":"tablet","cat":"หัวใจและความดันโลหิต","atc":"C03AA03","rl":200,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"ATEN50","name":"Atenolol","strength":"50 mg","form":"tablet","unit":"tablet","cat":"หัวใจและความดันโลหิต","atc":"C07AB03","rl":200,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"PROP10","name":"Propranolol","strength":"10 mg","form":"tablet","unit":"tablet","cat":"หัวใจและความดันโลหิต","atc":"C07AA05","rl":200,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"FURO40","name":"Furosemide","strength":"40 mg","form":"tablet","unit":"tablet","cat":"หัวใจและความดันโลหิต","atc":"C03CA01","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"SPIRO25","name":"Spironolactone","strength":"25 mg","form":"tablet","unit":"tablet","cat":"หัวใจและความดันโลหิต","atc":"C03DA01","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"ISDN5","name":"Isosorbide dinitrate","strength":"5 mg","form":"sublingual tablet","unit":"tablet","cat":"หัวใจและความดันโลหิต","atc":"C01DA08","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"ASA81","name":"Aspirin","strength":"81 mg","form":"tablet","unit":"tablet","cat":"หัวใจและความดันโลหิต","atc":"B01AC06","rl":300,"new":false,"unreg":false,"q":330,"qq":0,"val":99.0,"cost":0.3,"nlots":1,"exp":"2027-02-01","dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[{"lot":"AS8107","exp":"2027-02-01","q":330,"st":"active","cost":0.3,"rec":"2026-07-01"}]},{"sku":"CLOP75","name":"Clopidogrel","strength":"75 mg","form":"tablet","unit":"tablet","cat":"หัวใจและความดันโลหิต","atc":"B01AC04","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"WARF3","name":"Warfarin","strength":"3 mg","form":"tablet","unit":"tablet","cat":"หัวใจและความดันโลหิต","atc":"B01AA03","rl":60,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"METF500","name":"Metformin","strength":"500 mg","form":"tablet","unit":"tablet","cat":"เบาหวาน","atc":"A10BA02","rl":500,"new":false,"unreg":false,"q":880,"qq":0,"val":352.0,"cost":0.4,"nlots":3,"exp":"2027-12-31","dn":13,"dq":690,"dp":13,"last":"2026-10-31","dd":[["2026-10-03",60],["2026-10-05",30],["2026-10-06",30],["2026-10-08",90],["2026-10-09",90],["2026-10-17",60],["2026-10-22",30],["2026-10-23",60],["2026-10-24",30],["2026-10-27",90],["2026-10-30",30],["2026-10-31",30],["2026-10-31",60]],"lots":[{"lot":"MF5003","exp":"2027-12-31","q":380,"st":"active","cost":0.4,"rec":"2026-03-05"},{"lot":"MF5003","exp":"2027-12-31","q":380,"st":"duplicate","cost":0.4,"rec":"2026-03-05"},{"lot":"MF5009","exp":"2028-08-31","q":500,"st":"active","cost":0.4,"rec":"2026-09-18"}]},{"sku":"METF850","name":"Metformin","strength":"850 mg","form":"tablet","unit":"tablet","cat":"เบาหวาน","atc":"A10BA02","rl":300,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"GLIP5","name":"Glipizide","strength":"5 mg","form":"tablet","unit":"tablet","cat":"เบาหวาน","atc":"A10BB07","rl":200,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"GLIC80","name":"Gliclazide","strength":"80 mg","form":"tablet","unit":"tablet","cat":"เบาหวาน","atc":"A10BB09","rl":200,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"GLIB5","name":"Glibenclamide","strength":"5 mg","form":"tablet","unit":"tablet","cat":"เบาหวาน","atc":"A10BB01","rl":200,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"SIMVA20","name":"Simvastatin","strength":"20 mg","form":"tablet","unit":"tablet","cat":"ไขมันในเลือด","atc":"C10AA01","rl":300,"new":false,"unreg":false,"q":410,"qq":0,"val":266.5,"cost":0.65,"nlots":2,"exp":"2027-12-31","dn":7,"dq":450,"dp":7,"last":"2026-11-01","dd":[["2026-10-08",30],["2026-10-09",30],["2026-10-11",30],["2026-10-12",90],["2026-10-24",90],["2026-10-27",90],["2026-11-01",90]],"lots":[{"lot":"SV2504","exp":"2027-12-31","q":410,"st":"active","cost":0.65,"rec":"2026-04-25"},{"lot":"SV2509","exp":null,"q":180,"st":"unknown_expiry","cost":0.65,"rec":"2026-09-26"}]},{"sku":"ATOR20","name":"Atorvastatin","strength":"20 mg","form":"tablet","unit":"tablet","cat":"ไขมันในเลือด","atc":"C10AA05","rl":200,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"ROSU10","name":"Rosuvastatin","strength":"10 mg","form":"tablet","unit":"tablet","cat":"ไขมันในเลือด","atc":"C10AA07","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"GEMF600","name":"Gemfibrozil","strength":"600 mg","form":"tablet","unit":"tablet","cat":"ไขมันในเลือด","atc":"C10AB04","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"OMEP20","name":"Omeprazole","strength":"20 mg","form":"capsule","unit":"capsule","cat":"ทางเดินอาหาร","atc":"A02BC01","rl":300,"new":false,"unreg":false,"q":390,"qq":0,"val":351.0,"cost":0.9,"nlots":2,"exp":"2026-12-15","dn":13,"dq":780,"dp":12,"last":"2026-10-29","dd":[["2026-10-09",60],["2026-10-11",60],["2026-10-15",90],["2026-10-18",30],["2026-10-18",30],["2026-10-20",60],["2026-10-21",60],["2026-10-22",30],["2026-10-23",90],["2026-10-26",90],["2026-10-28",30],["2026-10-28",90],["2026-10-29",60]],"lots":[{"lot":"OM2411","exp":"2026-12-15","q":90,"st":"active","cost":0.9,"rec":"2025-11-28"},{"lot":"OM2507","exp":"2028-06-30","q":300,"st":"active","cost":0.9,"rec":"2026-07-21"}]},{"sku":"PANTO40","name":"Pantoprazole","strength":"40 mg","form":"tablet","unit":"tablet","cat":"ทางเดินอาหาร","atc":"A02BC02","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"FAMO20","name":"Famotidine","strength":"20 mg","form":"tablet","unit":"tablet","cat":"ทางเดินอาหาร","atc":"A02BA03","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"SIMET80","name":"Simethicone","strength":"80 mg","form":"chewable tablet","unit":"tablet","cat":"ทางเดินอาหาร","atc":"A03AX13","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"DOMP10","name":"Domperidone","strength":"10 mg","form":"tablet","unit":"tablet","cat":"ทางเดินอาหาร","atc":"A03FA03","rl":200,"new":false,"unreg":false,"q":320,"qq":0,"val":160.0,"cost":0.5,"nlots":2,"exp":"2028-05-31","dn":1,"dq":6,"dp":1,"last":"2026-10-10","dd":[["2026-10-10",6]],"lots":[{"lot":"DP2506","exp":"2028-05-31","q":220,"st":"active","cost":0.5,"rec":"2026-06-06"},{"lot":"DP2509","exp":"2028-08-31","q":100,"st":"active","cost":0.5,"rec":"2026-09-30"}]},{"sku":"METOC10","name":"Metoclopramide","strength":"10 mg","form":"tablet","unit":"tablet","cat":"ทางเดินอาหาร","atc":"A03FA01","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"HYOS10","name":"Hyoscine butylbromide","strength":"10 mg","form":"tablet","unit":"tablet","cat":"ทางเดินอาหาร","atc":"A03BB01","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"LOPE2","name":"Loperamide","strength":"2 mg","form":"capsule","unit":"capsule","cat":"ทางเดินอาหาร","atc":"A07DA03","rl":100,"new":false,"unreg":false,"q":140,"qq":0,"val":105.0,"cost":0.75,"nlots":2,"exp":"2028-04-30","dn":3,"dq":45,"dp":3,"last":"2026-10-19","dd":[["2026-10-10",15],["2026-10-19",10],["2026-10-19",20]],"lots":[{"lot":"LP2505","exp":"2028-04-30","q":0,"st":"active","cost":0.75,"rec":"2026-05-30"},{"lot":"LP2509","exp":"2028-08-31","q":140,"st":"active","cost":0.75,"rec":"2026-09-29"}]},{"sku":"CHAR250","name":"Activated charcoal","strength":"250 mg","form":"capsule","unit":"capsule","cat":"ทางเดินอาหาร","atc":"A07BA01","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"BISA5","name":"Bisacodyl","strength":"5 mg","form":"tablet","unit":"tablet","cat":"ทางเดินอาหาร","atc":"A06AB02","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"SENNA75","name":"Sennosides","strength":"7.5 mg","form":"tablet","unit":"tablet","cat":"ทางเดินอาหาร","atc":"A06AB06","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"LACTU-S","name":"Lactulose","strength":"10 g/15 mL, 60 mL","form":"oral solution","unit":"bottle","cat":"ทางเดินอาหาร","atc":"A06AD11","rl":10,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"CETI10","name":"Cetirizine","strength":"10 mg","form":"tablet","unit":"tablet","cat":"แก้แพ้","atc":"R06AE07","rl":300,"new":false,"unreg":false,"q":360,"qq":0,"val":144.0,"cost":0.4,"nlots":2,"exp":"2028-02-29","dn":7,"dq":94,"dp":7,"last":"2026-10-31","dd":[["2026-10-04",15],["2026-10-14",20],["2026-10-15",15],["2026-10-17",12],["2026-10-19",6],["2026-10-31",6],["2026-10-31",20]],"lots":[{"lot":"CT2503","exp":"2028-02-29","q":360,"st":"active","cost":0.4,"rec":"2026-03-15"},{"lot":"CT2509","exp":"2028-08-31","q":-20,"st":"error","cost":0.4,"rec":"2026-09-20"}]},{"sku":"LORA10","name":"Loratadine","strength":"10 mg","form":"tablet","unit":"tablet","cat":"แก้แพ้","atc":"R06AX13","rl":300,"new":false,"unreg":false,"q":310,"qq":0,"val":139.5,"cost":0.45,"nlots":1,"exp":"2028-04-30","dn":10,"dq":147.5,"dp":10,"last":"2026-10-31","dd":[["2026-10-06",30],["2026-10-08",10],["2026-10-14",10],["2026-10-14",20],["2026-10-20",12],["2026-10-21",15],["2026-10-22",6],["2026-10-27",2.5],["2026-10-30",12],["2026-10-31",30]],"lots":[{"lot":"LR2505","exp":"2028-04-30","q":310,"st":"active","cost":0.45,"rec":"2026-05-12"}]},{"sku":"CPM4","name":"Chlorpheniramine","strength":"4 mg","form":"tablet","unit":"tablet","cat":"แก้แพ้","atc":"R06AB04","rl":500,"new":false,"unreg":false,"q":650,"qq":0,"val":65.0,"cost":0.1,"nlots":2,"exp":"2028-06-30","dn":7,"dq":113,"dp":7,"last":"2026-10-27","dd":[["2026-10-15",20],["2026-10-16",20],["2026-10-17",12],["2026-10-19",6],["2026-10-19",30],["2026-10-21",15],["2026-10-27",10]],"lots":[{"lot":"CP2408","exp":"2026-08-31","q":0,"st":"expired","cost":0.1,"rec":"2024-09-01"},{"lot":"CP2507","exp":"2028-06-30","q":650,"st":"active","cost":0.1,"rec":"2026-07-09"}]},{"sku":"FEXO180","name":"Fexofenadine","strength":"180 mg","form":"tablet","unit":"tablet","cat":"แก้แพ้","atc":"R06AX26","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"HYDROX10","name":"Hydroxyzine","strength":"10 mg","form":"tablet","unit":"tablet","cat":"แก้แพ้","atc":"N05BB01","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"SALB-INH","name":"Salbutamol","strength":"100 mcg/dose, 200 doses","form":"inhaler","unit":"inhaler","cat":"ทางเดินหายใจ","atc":"R03AC02","rl":10,"new":false,"unreg":false,"q":12,"qq":0,"val":1140.0,"cost":95.0,"nlots":1,"exp":"2028-01-31","dn":1,"dq":2,"dp":1,"last":"2026-10-21","dd":[["2026-10-21",2]],"lots":[{"lot":"SB2507","exp":"2028-01-31","q":12,"st":"active","cost":95.0,"rec":"2026-07-17"}]},{"sku":"BUDE-INH","name":"Budesonide","strength":"200 mcg/dose, 200 doses","form":"inhaler","unit":"inhaler","cat":"ทางเดินหายใจ","atc":"R03BA02","rl":5,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"MONT10","name":"Montelukast","strength":"10 mg","form":"tablet","unit":"tablet","cat":"ทางเดินหายใจ","atc":"R03DC03","rl":60,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"DEXTRO-S","name":"Dextromethorphan","strength":"15 mg/5 mL, 60 mL","form":"syrup","unit":"bottle","cat":"ทางเดินหายใจ","atc":"R05DA09","rl":20,"new":false,"unreg":false,"q":24,"qq":0,"val":600.0,"cost":25.0,"nlots":2,"exp":"2027-01-10","dn":4,"dq":4,"dp":4,"last":"2026-10-20","dd":[["2026-10-05",1],["2026-10-08",1],["2026-10-18",1],["2026-10-20",1]],"lots":[{"lot":"DX2411","exp":"2027-01-10","q":9,"st":"active","cost":25.0,"rec":"2025-11-05"},{"lot":"DX2508","exp":"2028-02-29","q":15,"st":"active","cost":25.0,"rec":"2026-08-26"}]},{"sku":"BROM8","name":"Bromhexine","strength":"8 mg","form":"tablet","unit":"tablet","cat":"ทางเดินหายใจ","atc":"R05CB02","rl":200,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"AMBRO30","name":"Ambroxol","strength":"30 mg","form":"tablet","unit":"tablet","cat":"ทางเดินหายใจ","atc":"R05CB06","rl":200,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"GUAI-S","name":"Guaifenesin","strength":"100 mg/5 mL, 60 mL","form":"syrup","unit":"bottle","cat":"ทางเดินหายใจ","atc":"R05CA03","rl":10,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"NAC200","name":"Acetylcysteine","strength":"200 mg","form":"powder for oral solution","unit":"sachet","cat":"ทางเดินหายใจ","atc":"R05CB01","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"FLUTI-NS","name":"Fluticasone propionate","strength":"50 mcg/spray, 120 sprays","form":"nasal spray","unit":"bottle","cat":"ทางเดินหายใจ","atc":"R01AD08","rl":5,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"HC1-C","name":"Hydrocortisone","strength":"1%, 15 g","form":"cream","unit":"tube","cat":"ผิวหนัง","atc":"D07AA02","rl":10,"new":false,"unreg":false,"q":16,"qq":0,"val":352.0,"cost":22.0,"nlots":1,"exp":"2028-05-31","dn":3,"dq":6,"dp":3,"last":"2026-10-30","dd":[["2026-10-07",2],["2026-10-08",2],["2026-10-30",2]],"lots":[{"lot":"HC2506","exp":"2028-05-31","q":16,"st":"active","cost":22.0,"rec":"2026-06-19"}]},{"sku":"BETA-C","name":"Betamethasone valerate","strength":"0.1%, 15 g","form":"cream","unit":"tube","cat":"ผิวหนัง","atc":"D07AC01","rl":10,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"TA-C","name":"Triamcinolone acetonide","strength":"0.1%, 15 g","form":"cream","unit":"tube","cat":"ผิวหนัง","atc":"D07AB09","rl":10,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"MUPI-O","name":"Mupirocin","strength":"2%, 15 g","form":"ointment","unit":"tube","cat":"ผิวหนัง","atc":"D06AX09","rl":10,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"PVP-I","name":"Povidone-iodine","strength":"10%, 30 mL","form":"solution","unit":"bottle","cat":"ผิวหนัง","atc":"D08AG02","rl":20,"new":false,"unreg":false,"q":26,"qq":0,"val":780.0,"cost":30.0,"nlots":1,"exp":"2028-03-31","dn":1,"dq":1,"dp":1,"last":"2026-10-26","dd":[["2026-10-26",1]],"lots":[{"lot":"PV2504","exp":"2028-03-31","q":26,"st":"active","cost":30.0,"rec":"2026-04-07"}]},{"sku":"CAP-ED","name":"Chloramphenicol","strength":"0.5%, 10 mL","form":"eye drops","unit":"bottle","cat":"ตาและหู","atc":"S01AA01","rl":10,"new":false,"unreg":false,"q":14,"qq":0,"val":630.0,"cost":45.0,"nlots":2,"exp":"2027-08-31","dn":1,"dq":1,"dp":1,"last":"2026-10-06","dd":[["2026-10-06",1]],"lots":[{"lot":"CA2409","exp":"2026-09-30","q":3,"st":"expired","cost":45.0,"rec":"2024-09-30"},{"lot":"CA2508","exp":"2027-08-31","q":14,"st":"active","cost":45.0,"rec":"2026-08-11"}]},{"sku":"TOBRA-ED","name":"Tobramycin","strength":"0.3%, 5 mL","form":"eye drops","unit":"bottle","cat":"ตาและหู","atc":"S01AA12","rl":5,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"OFLO-EAR","name":"Ofloxacin","strength":"0.3%, 5 mL","form":"ear drops","unit":"bottle","cat":"ตาและหู","atc":"S02AA16","rl":5,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"VITC500","name":"Ascorbic acid","strength":"500 mg","form":"tablet","unit":"tablet","cat":"วิตามินและเกลือแร่","atc":"A11GA01","rl":300,"new":false,"unreg":false,"q":410,"qq":0,"val":143.5,"cost":0.35,"nlots":2,"exp":"2027-01-25","dn":2,"dq":40,"dp":2,"last":"2026-10-27","dd":[["2026-10-19",30],["2026-10-27",10]],"lots":[{"lot":"VC2502","exp":"2027-01-25","q":150,"st":"active","cost":0.35,"rec":"2026-02-11"},{"lot":"VC2508","exp":"2028-08-31","q":260,"st":"active","cost":0.35,"rec":"2026-08-29"}]},{"sku":"FOLIC5","name":"Folic acid","strength":"5 mg","form":"tablet","unit":"tablet","cat":"วิตามินและเกลือแร่","atc":"B03BB01","rl":200,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"FESO4","name":"Ferrous sulfate","strength":"200 mg","form":"tablet","unit":"tablet","cat":"วิตามินและเกลือแร่","atc":"B03AA07","rl":300,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"CACO3","name":"Calcium carbonate","strength":"1,250 mg","form":"tablet","unit":"tablet","cat":"วิตามินและเกลือแร่","atc":"A12AA04","rl":200,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"VITB1","name":"Thiamine","strength":"100 mg","form":"tablet","unit":"tablet","cat":"วิตามินและเกลือแร่","atc":"A11DA01","rl":200,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"AMIT10","name":"Amitriptyline","strength":"10 mg","form":"tablet","unit":"tablet","cat":"ระบบประสาท","atc":"N06AA09","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"FLUN5","name":"Flunarizine","strength":"5 mg","form":"capsule","unit":"capsule","cat":"ระบบประสาท","atc":"N07CA03","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"BETAH6","name":"Betahistine","strength":"6 mg","form":"tablet","unit":"tablet","cat":"ระบบประสาท","atc":"N07CA01","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"GABA300","name":"Gabapentin","strength":"300 mg","form":"capsule","unit":"capsule","cat":"ระบบประสาท","atc":"N02BF01","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"FLUOX20","name":"Fluoxetine","strength":"20 mg","form":"capsule","unit":"capsule","cat":"ระบบประสาท","atc":"N06AB03","rl":60,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"SERT50","name":"Sertraline","strength":"50 mg","form":"tablet","unit":"tablet","cat":"ระบบประสาท","atc":"N06AB06","rl":60,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"METHO500","name":"Methocarbamol","strength":"500 mg","form":"tablet","unit":"tablet","cat":"ข้อและกล้ามเนื้อ","atc":"M03BA03","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"ORPH-P","name":"Orphenadrine/Paracetamol","strength":"35/450 mg","form":"tablet","unit":"tablet","cat":"ข้อและกล้ามเนื้อ","atc":"M03BC51","rl":100,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"COLCH06","name":"Colchicine","strength":"0.6 mg","form":"tablet","unit":"tablet","cat":"ข้อและกล้ามเนื้อ","atc":"M04AC01","rl":60,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"ALLO100","name":"Allopurinol","strength":"100 mg","form":"tablet","unit":"tablet","cat":"ข้อและกล้ามเนื้อ","atc":"M04AA01","rl":200,"new":false,"unreg":false,"q":0,"qq":0,"val":0,"cost":null,"nlots":0,"exp":null,"dn":0,"dq":0,"dp":0,"last":null,"dd":[],"lots":[]},{"sku":"VITE400","name":"VITE400","strength":"","form":"-","unit":"หน่วย","cat":"ไม่อยู่ในบัญชียา","atc":"","rl":0,"new":false,"unreg":true,"q":120,"qq":0,"val":300.0,"cost":2.5,"nlots":1,"exp":"2028-05-31","dn":1,"dq":30,"dp":1,"last":"2026-10-18","dd":[["2026-10-18",30]],"lots":[{"lot":"VE2506","exp":"2028-05-31","q":120,"st":"active","cost":2.5,"rec":"2026-06-15"}]}],"risk":[{"sku":"AZI250","name":"Azithromycin 250 mg","lot":"AZ2503","exp":"2027-01-15","days":74,"q":48,"use":15,"risk":33,"val":225.76,"unit":"tablet","rate":0.2},{"sku":"VITC500","name":"Ascorbic acid 500 mg","lot":"VC2502","exp":"2027-01-25","days":84,"q":150,"use":112,"risk":38,"val":13.3,"unit":"tablet","rate":1.33},{"sku":"ASA81","name":"Aspirin 81 mg","lot":"AS8107","exp":"2027-02-01","days":91,"q":330,"use":0,"risk":330,"val":99.0,"unit":"tablet","rate":0.0}],"ov":{"cats":[{"name":"หัวใจและความดันโลหิต","n":13,"old":13,"new":0,"stocked":4,"dispensed":3},{"name":"ทางเดินอาหาร","n":12,"old":12,"new":0,"stocked":3,"dispensed":3},{"name":"ยาปฏิชีวนะ","n":11,"old":11,"new":0,"stocked":5,"dispensed":5},{"name":"แก้ปวดและต้านการอักเสบ","n":9,"old":9,"new":0,"stocked":5,"dispensed":5},{"name":"ต้านเชื้อรา ไวรัส และพยาธิ","n":9,"old":9,"new":0,"stocked":2,"dispensed":2},{"name":"ทางเดินหายใจ","n":9,"old":9,"new":0,"stocked":2,"dispensed":2},{"name":"ระบบประสาท","n":6,"old":6,"new":0,"stocked":0,"dispensed":0},{"name":"เบาหวาน","n":5,"old":5,"new":0,"stocked":1,"dispensed":1},{"name":"แก้แพ้","n":5,"old":5,"new":0,"stocked":3,"dispensed":3},{"name":"ผิวหนัง","n":5,"old":5,"new":0,"stocked":2,"dispensed":2},{"name":"วิตามินและเกลือแร่","n":5,"old":5,"new":0,"stocked":1,"dispensed":1},{"name":"ไขมันในเลือด","n":4,"old":4,"new":0,"stocked":1,"dispensed":1},{"name":"ข้อและกล้ามเนื้อ","n":4,"old":4,"new":0,"stocked":0,"dispensed":0},{"name":"ตาและหู","n":3,"old":3,"new":0,"stocked":1,"dispensed":1}],"forms":[{"name":"tablet","n":61},{"name":"capsule","n":14},{"name":"cream","n":6},{"name":"syrup","n":3},{"name":"inhaler","n":2},{"name":"eye drops","n":2},{"name":"suspension","n":1},{"name":"gel","n":1},{"name":"dry syrup","n":1},{"name":"oral suspension","n":1},{"name":"sublingual tablet","n":1},{"name":"chewable tablet","n":1},{"name":"oral solution","n":1},{"name":"powder for oral solution","n":1},{"name":"nasal spray","n":1},{"name":"ointment","n":1},{"name":"solution","n":1},{"name":"ear drops","n":1}],"atc":[{"code":"A","name":"ทางเดินอาหารและเมตาบอลิซึม","n":21},{"code":"C","name":"หัวใจและหลอดเลือด","n":14},{"code":"J","name":"ยาต้านการติดเชื้อ","n":13},{"code":"R","name":"ระบบทางเดินหายใจ","n":13},{"code":"M","name":"กล้ามเนื้อและกระดูก","n":11},{"code":"N","name":"ระบบประสาท","n":9},{"code":"D","name":"ผิวหนัง","n":8},{"code":"B","name":"เลือดและการสร้างเลือด","n":5},{"code":"P","name":"ต้านปรสิตและพยาธิ","n":3},{"code":"S","name":"อวัยวะรับความรู้สึก (ตา หู)","n":3}],"n":100,"n_old":100,"n_new":0,"stocked":30,"dispensed":29,"rl_min":5,"rl_med":100,"rl_max":500,"atc_bad":[],"new_stocked":0,"unreg":["VITE400"]},"qa":{"files":[{"file":"dispense-log.json","rows":150,"issues":10,"rows_affected":10},{"file":"stock.json","rows":49,"issues":12,"rows_affected":11},{"file":"drugs.json","rows":100,"issues":0,"rows_affected":0}],"log":[{"file":"stock.json","id":"S002","field":"expiry","found":"หมดอายุแล้ว 2026-10-20 (คงเหลือ 4)","action":"สถานะ expired ไม่นับเป็นสต็อกที่ใช้ได้ · ควรตัดจำหน่าย","kind":"flagged"},{"file":"stock.json","id":"S004","field":"expiry","found":"หมดอายุแล้ว 2026-08-31 (คงเหลือ 0)","action":"สถานะ expired ไม่นับเป็นสต็อกที่ใช้ได้","kind":"flagged"},{"file":"stock.json","id":"S006","field":"expiry","found":"รูปแบบ 31/03/2028","action":"แปลงเป็น ISO (2028-03-31) โดยอ่านเป็น วัน/เดือน/ปี","kind":"fixed"},{"file":"stock.json","id":"S007","field":"expiry","found":"หมดอายุแล้ว 2026-03-31 (คงเหลือ 200)","action":"สถานะ expired ไม่นับเป็นสต็อกที่ใช้ได้ · ควรตัดจำหน่าย","kind":"flagged"},{"file":"stock.json","id":"S007","field":"received_date/expiry","found":"รับเข้า 2026-09-14 หลังวันหมดอายุ 2026-03-31","action":"ติดธงให้ตรวจ (วันที่ไม่สมเหตุสมผล)","kind":"flagged"},{"file":"stock.json","id":"S010","field":"qty_on_hand","found":"ล็อต LP2505 คงเหลือ 0","action":"เก็บไว้ ไม่มีผลต่อยอด","kind":"flagged"},{"file":"stock.json","id":"S022","field":"expiry","found":"ไม่มีวันหมดอายุ (null)","action":"ไม่นับเป็นสต็อกที่ใช้ได้จนกว่าจะระบุวันหมดอายุ","kind":"flagged"},{"file":"stock.json","id":"S026","field":"unit_cost","found":"เป็นข้อความ \"0.50\"","action":"แปลงเป็นตัวเลข","kind":"fixed"},{"file":"stock.json","id":"S027","field":"qty_on_hand","found":"ติดลบ (-20)","action":"ไม่นับเป็นสต็อกที่ใช้ได้ (ไม่แก้เป็นค่าบวกเอง)","kind":"excluded"},{"file":"stock.json","id":"S037","field":"expiry","found":"หมดอายุแล้ว 2026-09-30 (คงเหลือ 3)","action":"สถานะ expired ไม่นับเป็นสต็อกที่ใช้ได้ · ควรตัดจำหน่าย","kind":"flagged"},{"file":"stock.json","id":"S039","field":"sku+lot","found":"ซ้ำกับ S033 (METF500 ล็อต MF5003) ข้อมูลเหมือนกันทุกฟิลด์","action":"นับครั้งเดียว (ใช้ S033)","kind":"excluded"},{"file":"dispense-log.json","id":"D0014","field":"lot/expiry","found":"จ่ายวันที่ 2026-10-06 จากล็อต CA2409 ที่หมดอายุ 2026-09-30","action":"นับตามจริง ติดธง (ความเสี่ยงด้านความปลอดภัย)","kind":"flagged"},{"file":"dispense-log.json","id":"D0030","field":"qty","found":"qty = 0","action":"จัดเป็น void ไม่นับในตัวเลขการจ่าย","kind":"excluded"},{"file":"dispense-log.json","id":"D0045","field":"lot","found":"AMLO5 ล็อต LS2505 ไม่มีใน stock.json","action":"นับตามจริง ติดธงให้ตรวจ","kind":"flagged"},{"file":"dispense-log.json","id":"D0057","field":"datetime","found":"รูปแบบ 15/10/2026 09:30","action":"แปลงเป็น ISO (2026-10-15T09:30:00+07:00)","kind":"fixed"},{"file":"dispense-log.json","id":"D0072","field":"sku","found":"VITE400 ไม่อยู่ในบัญชียา (drugs.json)","action":"นับตามจริง ติดป้าย \"ไม่อยู่ในบัญชียา\"","kind":"flagged"},{"file":"dispense-log.json","id":"D0093","field":"qty","found":"qty ติดลบ (-10)","action":"จัดเป็น void (คืน/ยกเลิก) ไม่นับในตัวเลขการจ่าย","kind":"excluded"},{"file":"dispense-log.json","id":"D0086","field":"dispense_id","found":"รหัสซ้ำ (แถวที่ 2: 2026-10-22 OMEP20 PT-0009)","action":"ตั้งรหัสใหม่ D0150 (เก็บ legacy_id D0086) และเก็บทั้ง 2 แถว","kind":"fixed"},{"file":"dispense-log.json","id":"D0106","field":"lot/expiry","found":"จ่ายวันที่ 2026-10-24 จากล็อต AS2410 ที่หมดอายุ 2026-10-20","action":"นับตามจริง ติดธง (ความเสี่ยงด้านความปลอดภัย)","kind":"flagged"},{"file":"dispense-log.json","id":"D0120","field":"qty","found":"จำนวนเป็นทศนิยม (2.5)","action":"นับตามจริง ติดธงให้ตรวจ","kind":"flagged"},{"file":"dispense-log.json","id":"D0149","field":"datetime","found":"2026-11-05 อยู่หลังช่วงข้อมูล (2026-11-01) และหลังวันที่ as_of (2026-11-02)","action":"ไม่นับในตัวเลข แสดงเฉพาะใน log","kind":"excluded"},{"file":"stock.json","id":"S040","field":"sku","found":"VITE400 ไม่อยู่ในบัญชียา (drugs.json)","action":"เก็บไว้ ติดป้าย \"ไม่อยู่ในบัญชียา\" (ไม่มี reorder level / หมวด / ATC)","kind":"flagged"}],"kinds":{"flagged":13,"fixed":4,"excluded":5},"ba":[{"label":"รายการจ่ายยาที่นับในตัวเลข","raw":150,"clean":147,"unit":"รายการ","note":"ตัด void 2 และรายการนอกช่วงเวลา 1"},{"label":"ผู้ป่วยที่รับบริการ (ไม่ซ้ำ)","raw":55,"clean":55,"unit":"คน","note":"ผู้ป่วยที่มีเฉพาะรายการที่ถูกตัดออก จะไม่ถูกนับ"},{"label":"ล็อตในสต็อก","raw":49,"clean":42,"unit":"ล็อต","note":"นับเฉพาะล็อตสถานะ active (ไม่ซ้ำ ไม่หมดอายุ มีวันหมดอายุ ไม่ติดลบ)"},{"label":"จำนวนหน่วยคงเหลือรวม","raw":9087,"clean":8340,"unit":"หน่วย","note":"หลายหน่วยนับรวมกัน ใช้เทียบก่อน–หลังเท่านั้น"},{"label":"มูลค่าสต็อก","raw":12155.4,"clean":11451.4,"unit":"บาท","money":true,"note":"ก่อน = ผลรวมดิบของทุกแถว รวมล็อตซ้ำ ติดลบ และหมดอายุ"}]}};
+
+const $ = s => document.querySelector(s);
+const fmt = n => Number(n).toLocaleString('en-US');
+const baht = n => '฿' + Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const TH_M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const TH_D=['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+const dobj = iso => new Date(iso+'T00:00:00');
+const fd = iso => { const d=dobj(iso); return d.getDate()+' '+TH_M[d.getMonth()]; };
+const fdl = iso => TH_D[dobj(iso).getDay()]+' '+fd(iso);
+const fdy = iso => { const d=dobj(iso); return d.getDate()+' '+TH_M[d.getMonth()]+' '+(d.getFullYear()+543); };
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tip = $('#tip');
+function showTip(e,html){tip.innerHTML=html;tip.style.opacity=1;const r=tip.getBoundingClientRect();
+  let x=e.clientX+14,y=e.clientY+14; if(x+r.width>innerWidth-8)x=e.clientX-r.width-14; if(y+r.height>innerHeight-8)y=e.clientY-r.height-14;
+  tip.style.transform=`translate(${Math.max(4,x)}px,${Math.max(4,y)}px)`;}
+const hideTip=()=>{tip.style.opacity=0};
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ---------- header ---------- */
+$('#chip-period').textContent='ช่วงข้อมูล '+fdy(D.period[0])+' – '+fdy(D.period[1]);
+$('#chip-asof').textContent='ยอดสต็อก ณ '+fdy(D.asof);
+$('#chip-src').textContent='จ่ายยา '+fmt(D.kpi.dispenses)+' ครั้ง · '+fmt(D.kpi.stock_lots)+' ล็อต';
+$('#f-asof').textContent=fdy(D.asof);
+
+/* ---------- KPI cards ---------- */
+const IC={
+ rx:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg>',
+ users:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.5c2 .7 3 2.6 3 5.5"/></svg>',
+ box:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>',
+ low:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17.5v.01"/></svg>',
+ clock:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
+};
+const lowNames=D.reorder.filter(r=>r.qty<r.rl).map(r=>r.sku).join(', ');
+const K=D.kpi;
+const cards=[
+ {ic:'rx',lb:'จำนวนครั้งที่จ่ายยา',v:K.dispenses,u:'ครั้ง',ft:`เฉลี่ย ${K.avg_day} ครั้ง/วัน · ไม่นับ void ${K.voids}`,num:true},
+ {ic:'users',lb:'ผู้ป่วยที่รับบริการ (ไม่ซ้ำ)',v:K.patients,u:'คน',ft:`กลับมารับยามากกว่า 1 ครั้ง ${K.repeat} คน`,num:true},
+ {ic:'box',lb:'มูลค่ายาคงคลัง (ล็อต active)',v:K.stock_value,u:'บาท',ft:`ล็อตหมดอายุ/ไม่ทราบวันหมดอายุ ${baht(K.quar_value)} ไม่นับรวม`,money:true},
+ {ic:'low',lb:'ยาต่ำกว่าจุดสั่งซื้อ',v:K.low,u:`จาก ${K.stock_skus} SKU`,ft:lowNames||'ไม่มีรายการ',warn:K.low>0,tag:'ควรสั่งเพิ่ม',num:true},
+ {ic:'clock',lb:'ล็อตใกล้หมดอายุ ≤ 90 วัน',v:K.near_n,u:'ล็อต',ft:`มูลค่ารวม ${baht(K.near_v)}`,warn:K.near_n>0,tag:'ควรจัดการก่อนหมดอายุ',num:true}
+];
+$('#kpis').innerHTML=cards.map((c,i)=>`<div class="card kpi ${c.warn?'warn':''}">
+  <div class="ic">${IC[c.ic]}</div>${c.warn?`<div class="tag">▲ ${c.tag}</div><br>`:''}
+  <div class="lb">${c.lb}</div><div class="val"><span data-i="${i}">0</span><small>${c.u}</small></div><div class="ft">${esc(c.ft)}</div></div>`).join('');
+function countUp(){
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('#kpis .val span').forEach(el=>{
+    const c=cards[el.dataset.i]; const show=x=>c.money?'฿'+Math.round(x).toLocaleString('en-US'):fmt(Math.round(x));
+    if(reduce){el.textContent=show(c.v);return;}
+    const t0=performance.now(),dur=900;
+    const step=t=>{const p=Math.min(1,(t-t0)/dur);el.textContent=show(c.v*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step)};
+    requestAnimationFrame(step);
+  });
+}
+
+/* ---------- chart helpers ---------- */
+const rtop=(x,y,w,h,r)=>{if(h<=0)return '';r=Math.min(r,h,w/2);return `M${x},${y+h}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h}Z`};
+const niceMax=(m,step)=>Math.max(step,Math.ceil(m/step)*step);
+
+function lineChart(node,rows){
+  const W=Math.max(320,node.clientWidth),H=345,m={l:34,r:14,t:20,b:30};
+  const iw=W-m.l-m.r,ih=H-m.t-m.b,n=rows.length;
+  const avg=rows.map((_,i)=>{const s=rows.slice(Math.max(0,i-6),i+1);return s.reduce((a,r)=>a+r.n,0)/s.length});
+  const ymax=niceMax(Math.max(...rows.map(r=>r.n)),2);
+  const x=i=>m.l+iw*i/(n-1), y=v=>m.t+ih*(1-v/ymax), step=iw/(n-1);
+  let g='';
+  for(let v=0;v<=ymax;v+=2){g+=`<line class="grid" x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}"/><text x="${m.l-8}" y="${y(v)+4}" text-anchor="end">${v}</text>`}
+  let wk='';
+  rows.forEach((r,i)=>{const d=dobj(r.d).getDay(); if(d===0||d===6){wk+=`<rect x="${x(i)-step/2}" y="${m.t}" width="${step}" height="${ih}" fill="var(--weekend)"/>`}});
+  let xl='';
+  rows.forEach((r,i)=>{if(i%4===0){xl+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${fd(r.d)}</text>`}});
+  const pts=rows.map((r,i)=>`${x(i)},${y(r.n)}`);
+  const line='M'+pts.join('L');
+  const area=`M${x(0)},${y(0)}L${pts.join('L')}L${x(n-1)},${y(0)}Z`;
+  const aline='M'+avg.map((v,i)=>`${x(i)},${y(v)}`).join('L');
+  const pk=rows.reduce((a,r,i)=>r.n>rows[a].n?i:a,0);
+  const lab=`<circle cx="${x(pk)}" cy="${y(rows[pk].n)}" r="5" fill="var(--blue)" stroke="var(--surface)" stroke-width="2"/>
+    <text x="${x(pk)}" y="${y(rows[pk].n)-11}" text-anchor="middle" style="fill:var(--ink);font-weight:700;font-size:12px">สูงสุด ${rows[pk].n}</text>`;
+  node.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="กราฟเส้นจำนวนครั้งที่จ่ายยารายวัน">
+   <defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--blue)" stop-opacity=".32"/><stop offset="1" stop-color="var(--blue)" stop-opacity="0"/></linearGradient></defs>
+   ${wk}${g}${xl}<path d="${area}" fill="url(#ga)"/><path d="${aline}" fill="none" stroke="var(--orange)" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round"/>
+   <path d="${line}" fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${lab}
+   <g id="xh" style="display:none"><line id="xhl" y1="${m.t}" y2="${m.t+ih}" stroke="var(--ink-3)" stroke-dasharray="3 3"/><circle id="xhd" r="5.5" fill="var(--blue)" stroke="var(--surface)" stroke-width="2"/></g>
+   <rect id="ov" x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent"/></svg>`;
+  const svg=node.querySelector('svg'),ov=svg.querySelector('#ov'),xh=svg.querySelector('#xh');
+  ov.addEventListener('mousemove',e=>{
+    const b=svg.getBoundingClientRect(),px=(e.clientX-b.left)*(W/b.width);
+    const i=Math.max(0,Math.min(n-1,Math.round((px-m.l)/step)));
+    xh.style.display='';xh.querySelector('#xhl').setAttribute('x1',x(i));xh.querySelector('#xhl').setAttribute('x2',x(i));
+    xh.querySelector('#xhd').setAttribute('cx',x(i));xh.querySelector('#xhd').setAttribute('cy',y(rows[i].n));
+    showTip(e,`<b>${fdl(rows[i].d)}</b>จ่ายยา ${rows[i].n} ครั้ง<br>เฉลี่ย 7 วัน ${avg[i].toFixed(1)}`);
+  });
+  ov.addEventListener('mouseleave',()=>{xh.style.display='none';hideTip()});
+}
+
+function colChart(node,rows,o){
+  const W=Math.max(260,node.clientWidth),H=o.h||230,m={l:30,r:8,t:22,b:o.bb||28};
+  const iw=W-m.l-m.r,ih=H-m.t-m.b,n=rows.length;
+  const mx=Math.max(...rows.map(o.v)),st=o.step||2;
+  const ts=st*Math.max(1,Math.ceil(mx/st/4)),ymax=ts*Math.max(1,Math.ceil(mx/ts));
+  const slot=iw/n,bw=Math.min(46,slot*.64);
+  const y=v=>m.t+ih*(1-v/ymax);
+  let g='';
+  for(let v=0;v<=ymax;v+=ts){g+=`<line class="grid" x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}"/><text x="${m.l-6}" y="${y(v)+4}" text-anchor="end">${Number.isInteger(v)?v:v.toFixed(1)}</text>`}
+  let bars='';
+  rows.forEach((r,i)=>{
+    const v=o.v(r),cx=m.l+slot*i+slot/2,h=ih*v/ymax;
+    const col=o.c?o.c(r,i):'var(--blue)';
+    bars+=`<path class="bar" data-i="${i}" d="${rtop(cx-bw/2,y(v),bw,h,5)}" fill="${col}"/>`;
+    if(o.all||(o.hi&&o.hi(r,i)))bars+=`<text x="${cx}" y="${y(v)-6}" text-anchor="middle" style="fill:var(--ink);font-weight:700">${o.f?o.f(v):v}</text>`;
+    bars+=`<text x="${cx}" y="${H-(o.bb?o.bb-16:9)}" text-anchor="middle">${esc(o.l(r))}</text>`;
+    bars+=`<rect class="hit" data-i="${i}" x="${m.l+slot*i}" y="${m.t}" width="${slot}" height="${ih+m.b}" fill="transparent"/>`;
+  });
+  node.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="${esc(o.aria||'กราฟแท่ง')}">${g}${bars}</svg>`;
+  node.querySelectorAll('.hit').forEach(h=>{
+    const i=+h.dataset.i,bar=node.querySelector(`.bar[data-i="${i}"]`);
+    h.addEventListener('mousemove',e=>{bar&&bar.setAttribute('opacity','.8');showTip(e,o.tip(rows[i]))});
+    h.addEventListener('mouseleave',()=>{bar&&bar.removeAttribute('opacity');hideTip()});
+  });
+}
+
+function hbars(node,rows,o){
+  const max=Math.max(...rows.map(o.v),o.min||0);
+  node.innerHTML=rows.map((r,i)=>`<div class="hb ${o.click?'clk':''}" data-i="${i}"><div class="hb-l" title="${esc(o.l(r))}">${esc(o.l(r))}</div>
+   <div class="hb-t"><div class="hb-f" style="width:${Math.max(1.5,o.v(r)/max*100)}%;${o.c?`background:${o.c(r)}`:''}"></div>${o.ref?`<div class="hb-ref" style="left:${o.ref/max*100}%"></div>`:''}${o.ref2?`<div class="hb-ref2" style="left:${o.ref2/max*100}%"></div>`:''}</div>
+   <div class="hb-v">${o.f(r)}</div></div>`).join('');
+  node.querySelectorAll('.hb').forEach(h=>{const r=rows[+h.dataset.i];
+    h.addEventListener('mousemove',e=>showTip(e,o.tip(r)));h.addEventListener('mouseleave',hideTip);
+    if(o.click)h.addEventListener('click',()=>o.click(r));});
+}
+
+/* ---------- section subtitles (insights) ---------- */
+const pkDay=D.days.reduce((a,r)=>r.n>a.n?r:a,D.days[0]);
+const wkE=D.days.filter(r=>{const d=dobj(r.d).getDay();return d===0||d===6});
+const wkD=D.days.filter(r=>{const d=dobj(r.d).getDay();return d!==0&&d!==6});
+const avgWE=wkE.reduce((a,r)=>a+r.n,0)/wkE.length, avgWD=wkD.reduce((a,r)=>a+r.n,0)/wkD.length;
+$('#s-trend').innerHTML=`วันที่คึกคักที่สุดคือ <b>${fdl(pkDay.d)}</b> (${pkDay.n} ครั้ง) · เสาร์–อาทิตย์เฉลี่ย <b>${avgWE.toFixed(1)}</b> ครั้ง/วัน เทียบกับวันธรรมดา <b>${avgWD.toFixed(1)}</b>`;
+const t0=D.top[0]; $('#s-top').innerHTML=`<b>${esc(t0.name)}</b> ถูกจ่ายมากสุด ${t0.n} ครั้ง · วางเมาส์เพื่อดูจำนวนหน่วยที่จ่าย · คลิกเพื่อเปิดใน Drug Explorer`;
+$('#s-cat').innerHTML=`หมวด <b>${esc(D.cats[0].name)}</b> สูงสุด ${D.cats[0].n} ครั้ง จาก ${D.cats.length} หมวดที่มีการจ่าย`;
+const pkH=D.hours.reduce((a,r)=>r.n>a.n?r:a,D.hours[0]);
+$('#s-hour').innerHTML=`ช่วง <b>${String(pkH.h).padStart(2,'0')}:00–${String(pkH.h).padStart(2,'0')}:59 น.</b> คนมากที่สุด (${pkH.n} ครั้ง)`;
+const wdMax=D.wd.reduce((a,r)=>r.n>a.n?r:a,D.wd[0]);
+$('#s-wd').innerHTML=`วัน <b>${esc(wdMax.name)}</b> มีการจ่ายมากที่สุด (${wdMax.n} ครั้ง)`;
+const rxMax=D.rx.reduce((a,r)=>r.n>a.n?r:a,D.rx[0]);
+$('#s-rx').innerHTML=`<b>${rxMax.name}</b> จ่ายมากที่สุด ${rxMax.n} ครั้ง (${(rxMax.n/K.dispenses*100).toFixed(0)}% ของทั้งหมด)`;
+$('#s-cv').innerHTML=`รวม <b>${baht(K.stock_value)}</b> · หมวดสูงสุดคือ ${esc(D.catval[0].name)} (${baht(D.catval[0].v)})`;
+const bk0=D.buckets[0];
+$('#s-bk').innerHTML=`<b>${bk0.n} ล็อต</b> (${baht(bk0.v)}) จะหมดอายุภายใน 90 วัน · แท่งสีส้มคือกลุ่มที่ต้องเร่งจัดการ`;
+$('#s-ro').innerHTML=`<b>${K.low} จาก ${K.stock_skus} SKU</b> ต่ำกว่า reorder level · เส้นดำ = 100% ของ reorder level`;
+$('#s-near').innerHTML=`เรียงตามวันหมดอายุ · มูลค่ารวม <b>${baht(K.near_v)}</b>`;
+
+/* ---------- alerts ---------- */
+const expd=D.dq.exp_dispense, expLots=D.watch.filter(w=>w.status==='expired'&&w.qty>0);
+$('#alerts').innerHTML=[
+ {c:'r',i:'!',t:expd.length?`จ่ายยาล็อตหมดอายุแล้ว ${expd.length} ครั้ง`:'ไม่พบการจ่ายยาล็อตหมดอายุ',s:expd.map(e=>`${e[0]} (${e[1]} ล็อต ${e[2]} หมด ${fd(e[3])}, จ่าย ${fd(e[4])})`).join(' · ')},
+ {c:'r',i:'⏹',t:`ยาหมดอายุที่ยังค้างในสต็อก ${expLots.length} ล็อต`,s:expLots.map(w=>`${w.name} ล็อต ${w.lot} (${fmt(w.qty)} หน่วย)`).join(' · ')||'ไม่มี'},
+ {c:'o',i:'▲',t:`ต่ำกว่าจุดสั่งซื้อ ${K.low} SKU`,s:D.reorder.filter(r=>r.qty<r.rl).map(r=>`${r.name} เหลือ ${r.pct}%`).join(' · ')||'ไม่มี'},
+ {c:'o',i:'⏱',t:`ใกล้หมดอายุ ≤ 90 วัน ${K.near_n} ล็อต`,s:D.near.length?`รายการแรก: ${D.near[0].name} ล็อต ${D.near[0].lot} (อีก ${D.near[0].days} วัน)`:'ไม่มี'}
+].map(a=>`<div class="al ${a.c}"><div class="i" aria-hidden="true">${a.i}</div><div><b>${a.t}</b><span>${esc(a.s)}</span></div></div>`).join('');
+
+/* ---------- tables ---------- */
+$('#t-near').innerHTML=`<table><thead><tr><th>ยา</th><th>ล็อต</th><th>หมดอายุ</th><th class="n">เหลือ (วัน)</th><th class="n">จำนวน</th><th class="n">มูลค่า</th></tr></thead><tbody>${
+ D.near.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.lot}</td><td>${fdy(r.expiry)}</td><td class="n"><span class="pill ${r.days<=60?'r':'o'}">${r.days}</span></td><td class="n">${fmt(r.qty)}</td><td class="n">${baht(r.v)}</td></tr>`).join('')}</tbody></table>`;
+const stTH={written_off:['ตัดจำหน่าย','r'],quarantine:['กักกัน','o'],expired:['หมดอายุ','r'],unknown_expiry:['ไม่ทราบวันหมดอายุ','o'],error:['ข้อมูลผิดพลาด','r'],duplicate:['ล็อตซ้ำ','m']};
+$('#t-watch').innerHTML=`<table><thead><tr><th>ยา</th><th>ล็อต</th><th>สถานะ</th><th>หมดอายุ</th><th class="n">คงเหลือ</th></tr></thead><tbody>${
+ D.watch.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.lot}</td><td><span class="pill ${stTH[r.status][1]}">${stTH[r.status][0]}</span></td><td>${r.expiry?fdy(r.expiry):'<i style="color:var(--ink-3)">ไม่ระบุ</i>'}</td><td class="n">${fmt(r.qty)}</td></tr>`).join('')}</tbody></table>`;
+
+/* ---------- data quality summary ---------- */
+const Q0=D.qa,kd=Q0.kinds,q=D.dq;
+$('#dq').innerHTML=[
+ `พบ <b>${Q0.log.length} ประเด็น</b> จาก ${fmt(Q0.files.reduce((a,f)=>a+f.rows,0))} แถว: แก้ไขอัตโนมัติ ${kd.fixed||0} · ไม่นับ ${kd.excluded||0} · ติดธงให้ตรวจ ${kd.flagged||0}`,
+ `<b>ไม่นับในตัวเลขการจ่าย ${q.excluded.length} รายการ:</b> ${q.excluded.map(e=>`${e[0]} (${e[1]})`).join(', ')}`,
+ q.no_stock_lot.length?`<b>${q.no_stock_lot.map(x=>x[0]+' '+x[1]+' ล็อต '+x[2]).join(', ')}</b> ไม่มีล็อตนี้ใน stock`:'ทุกการจ่ายอ้างอิงล็อตที่มีใน stock',
+ D.ov.unreg.length?`<b>${D.ov.unreg.join(', ')}</b> ไม่อยู่ในบัญชียา (drugs.json) จึงไม่มี reorder level, หมวด และ ATC`:'ทุก SKU อยู่ในบัญชียา',
+ `ดูรายละเอียดทั้งหมดและดาวน์โหลด log ได้ที่แท็บ <b>คุณภาพข้อมูล</b>`
+].map(t=>`<li><span class="d">i</span><span>${t}</span></li>`).join('');
+
+/* ---------- render charts (re-run on resize) ---------- */
+function drawAll(){
+  lineChart($('#c-trend'),D.days);
+  hbars($('#c-top'),D.top,{click:r=>openDrug(r.sku),l:r=>r.name,v:r=>r.n,f:r=>r.n+' ครั้ง',tip:r=>`<b>${esc(r.name)}</b>${r.n} ครั้ง · รวม ${fmt(r.qty)} ${esc(r.unit)}<br>${esc(r.cat)}`});
+  hbars($('#c-cat'),D.cats,{l:r=>r.name,v:r=>r.n,f:r=>r.n+' ครั้ง',tip:r=>`<b>${esc(r.name)}</b>${r.n} ครั้ง (${(r.n/K.dispenses*100).toFixed(1)}%)`});
+  const pkI=D.hours.reduce((a,r,i)=>r.n>D.hours[a].n?i:a,0);
+  colChart($('#c-hour'),D.hours,{v:r=>r.n,l:r=>r.h,step:4,hi:(r,i)=>i===pkI,tip:r=>`<b>${String(r.h).padStart(2,'0')}:00–${String(r.h).padStart(2,'0')}:59 น.</b>${r.n} ครั้ง`,aria:'จำนวนครั้งที่จ่ายยารายชั่วโมง',c:(r,i)=>i===pkI?'var(--blue)':'var(--blue-line)'});
+  const wI=D.wd.reduce((a,r,i)=>r.n>D.wd[a].n?i:a,0);
+  colChart($('#c-wd'),D.wd,{v:r=>r.n,l:r=>r.name,step:4,all:true,tip:r=>`<b>วัน${esc(r.name)}</b>${r.n} ครั้ง`,aria:'จำนวนครั้งที่จ่ายยาตามวันในสัปดาห์',c:(r,i)=>i===wI?'var(--blue)':'var(--blue-line)'});
+  colChart($('#c-rx'),D.rx,{v:r=>r.n,l:r=>r.name,step:10,all:true,tip:r=>`<b>${r.name}</b>${r.n} ครั้ง (${(r.n/K.dispenses*100).toFixed(1)}%)`,aria:'จำนวนครั้งที่จ่ายยาแยกตามเภสัชกร'});
+  hbars($('#c-cv'),D.catval,{l:r=>r.name,v:r=>r.v,f:r=>'฿'+Math.round(r.v).toLocaleString('en-US'),tip:r=>`<b>${esc(r.name)}</b>${baht(r.v)} (${(r.v/K.stock_value*100).toFixed(1)}%)`});
+  colChart($('#c-bk'),D.buckets,{v:r=>r.n,l:r=>r.name,step:10,all:true,h:240,tip:r=>`<b>${esc(r.name)}</b>${r.n} ล็อต · ${baht(r.v)}`,aria:'จำนวนล็อตตามอายุคงเหลือ',c:(r,i)=>i===0?'var(--orange)':'var(--blue)'});
+  const ro=D.reorder.slice(0,10);
+  hbars($('#c-ro'),ro,{l:r=>r.name,v:r=>r.pct,min:100,ref:100,f:r=>r.pct.toFixed(0)+'%',c:r=>r.qty<r.rl?'var(--orange)':'var(--blue)',
+    tip:r=>`<b>${esc(r.name)}</b>คงเหลือ ${fmt(r.qty)} ${esc(r.unit)} / reorder ${fmt(r.rl)}<br>${r.qty<r.rl?'▲ ต่ำกว่าจุดสั่งซื้อ':'อยู่ในเกณฑ์'}`});
+}
+
+/* =====================================================================
+   Shared helpers for the extra tabs
+   ===================================================================== */
+Object.assign(IC,{
+ cart:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.6 12.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/></svg>',
+ layers:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5M3 17.5l9 5 9-5" opacity=".6"/></svg>',
+ grid:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>',
+ pause:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/></svg>'
+});
+function animateNode(node,anim){
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  node.querySelectorAll('.val span').forEach(el=>{
+    const v=+el.dataset.v,m=el.dataset.m==='1',dec=+el.dataset.d;
+    const show=x=>m?'฿'+Math.round(x).toLocaleString('en-US'):x.toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+    if(reduce||!anim){el.textContent=show(v);return}
+    const t0=performance.now(),dur=800;
+    const step=t=>{const p=Math.min(1,(t-t0)/dur);el.textContent=show(v*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step)};
+    requestAnimationFrame(step);
+  });
+}
+function kpiRow(node,cards,anim){
+  node.innerHTML=cards.map(c=>`<div class="card kpi ${c.warn?'warn':''}"><div class="ic">${IC[c.ic]}</div>${c.warn?`<div class="tag">▲ ${c.tag}</div><br>`:''}
+   <div class="lb">${c.lb}</div><div class="val"><span data-v="${c.v}" data-m="${c.money?1:0}" data-d="${c.dec||0}">0</span><small>${c.u}</small></div><div class="ft">${esc(c.ft)}</div></div>`).join('');
+  animateNode(node,anim);
+}
+function stackBars(node,rows,o){
+  const max=Math.max(...rows.map(r=>r.a+r.b));
+  node.innerHTML=rows.map((r,i)=>`<div class="hb" data-i="${i}"><div class="hb-l" title="${esc(o.l(r))}">${esc(o.l(r))}</div>
+   <div class="hb-t" style="background:transparent"><div class="sb" style="width:${(r.a+r.b)/max*100}%">${r.a?`<div class="sb-a" style="flex:${r.a}"></div>`:''}${r.b?`<div class="sb-b" style="flex:${r.b}"></div>`:''}</div></div>
+   <div class="hb-v">${r.a+r.b}</div></div>`).join('');
+  node.querySelectorAll('.hb').forEach(h=>{const r=rows[+h.dataset.i];
+    h.addEventListener('mousemove',e=>showTip(e,o.tip(r)));h.addEventListener('mouseleave',hideTip)});
+}
+const daysTo=iso=>Math.round((dobj(iso)-dobj(D.asof))/864e5);
+const PILL={active:['ใช้งานได้','g'],quarantine:['กักกัน','o'],written_off:['ตัดจำหน่าย','r'],expired:['หมดอายุ','r'],unknown_expiry:['ไม่ทราบวันหมดอายุ','o'],error:['ข้อมูลผิดพลาด','r'],duplicate:['ล็อตซ้ำ','m']};
+function dstat(r){
+  if(!r.nlots)return ['ไม่มีสต็อก','m'];
+  if(r.q<=0)return ['ไม่มียาที่ใช้ได้','r'];
+  if(r.q<r.rl)return ['ต่ำกว่า reorder','o'];
+  return ['มีสต็อก','g'];
+}
+const pillH=(p)=>`<span class="pill ${p[1]}">${p[0]}</span>`;
+const nameOf=r=>`${r.name} ${r.strength}`;
+
+/* =====================================================================
+   Drug Overview
+   ===================================================================== */
+let ovInit=false;
+function drawOverview(){
+  const O=D.ov,dr=D.drugs;
+  $('#ov-note').style.display=O.n_new?'':'none';$('#ov-legend').style.display=O.n_new?'':'none';
+  if(!ovInit){
+    ovInit=true;
+    kpiRow($('#ov-kpis'),[
+      {ic:'layers',lb:'รายการยาในบัญชี',v:O.n,u:'รายการ',ft:O.n_new?`บัญชีเดิม ${O.n_old} + เพิ่มใหม่ ${O.n_new}`:'จาก drugs.json'},
+      {ic:'grid',lb:'หมวดยา',v:O.cats.length,u:'หมวด',ft:`ATC ระดับ 1 มี ${O.atc.length} กลุ่ม`},
+      {ic:'rx',lb:'รูปแบบยา (Dosage form)',v:O.forms.length,u:'รูปแบบ',ft:`${O.forms[0].name} มากสุด ${O.forms[0].n} รายการ`},
+      {ic:'box',lb:'ยาที่มีสต็อก',v:O.stocked,u:`จาก ${O.n}`,ft:`คิดเป็น ${(O.stocked/O.n*100).toFixed(1)}% ของบัญชี`},
+      {ic:'users',lb:'ยาที่ถูกจ่ายในช่วงข้อมูล',v:O.dispensed,u:'รายการ',ft:`${(O.dispensed/O.n*100).toFixed(1)}% ของบัญชี · 30 วัน`}
+    ],true);
+  }
+  const cats=O.cats;
+  stackBars($('#ov-cat'),cats.map(c=>({name:c.name,a:c.old,b:c.new})),{l:r=>r.name,tip:r=>`<b>${esc(r.name)}</b>รวม ${r.a+r.b} รายการ<br>บัญชีเดิม ${r.a} · เพิ่มใน v2.0 ${r.b}`});
+  $('#s-ovcat').innerHTML=`<b>${esc(cats[0].name)}</b> มากที่สุด ${cats[0].n} รายการ ${O.n_new?'· 2 หมวดใหม่ใน v2.0 มีเฉพาะรายการเพิ่มใหม่':''}`;
+  const cov=cats.map(c=>({...c,p:c.stocked/c.n*100})).sort((a,b)=>b.p-a.p||b.n-a.n);
+  hbars($('#ov-cov'),cov,{l:r=>r.name,v:r=>r.p,min:100,f:r=>`${r.stocked}/${r.n}`,
+    tip:r=>`<b>${esc(r.name)}</b>มีสต็อก ${r.stocked} จาก ${r.n} รายการ (${r.p.toFixed(0)}%)<br>เคยถูกจ่าย ${r.dispensed} รายการ`});
+  const zero=cov.filter(c=>c.stocked===0).length;
+  $('#s-ovcov').innerHTML=`<b>${zero} หมวด</b> ยังไม่มีสต็อกเลย ${O.n_new?`· ยา v2.0 มีสต็อก <b>${O.new_stocked}</b> จาก ${O.n_new} รายการ`:`· ยานอกบัญชี (${O.unreg.join(', ')}) ไม่นับในหน้านี้`}`;
+  hbars($('#ov-atc'),O.atc,{l:r=>`${r.code} · ${r.name}`,v:r=>r.n,f:r=>r.n,tip:r=>`<b>ATC ${r.code}</b>${esc(r.name)}<br>${r.n} รายการ (${(r.n/O.n*100).toFixed(1)}%)`});
+  $('#s-ovatc').innerHTML=`ตรวจรูปแบบรหัส ATC แล้ว <b>${O.atc_bad.length===0?'ถูกต้องทุกรายการ':O.atc_bad.length+' รายการผิดรูปแบบ'}</b> (ตรวจเฉพาะรูปแบบ ไม่ได้ตรวจความถูกต้องของตัวยา)`;
+  const topF=O.forms.slice(0,8),other=O.forms.slice(8).reduce((a,f)=>a+f.n,0);
+  const fr=topF.concat(other?[{name:`อื่น ๆ (${O.forms.length-8} รูปแบบ)`,n:other}]:[]);
+  hbars($('#ov-form'),fr,{l:r=>r.name,v:r=>r.n,f:r=>r.n,tip:r=>`<b>${esc(r.name)}</b>${r.n} รายการ (${(r.n/O.n*100).toFixed(1)}%)`});
+  $('#s-ovform').innerHTML=`ยาเม็ดและแคปซูลรวม <b>${((O.forms[0].n+O.forms[1].n)/O.n*100).toFixed(0)}%</b> ของบัญชี`;
+  const bins=[['≤10',0,10],['11–30',11,30],['31–60',31,60],['61–100',61,100],['101–200',101,200],['>200',201,1e9]];
+  const hist=bins.map(([n,lo,hi])=>({name:n,n:dr.filter(r=>r.rl>=lo&&r.rl<=hi).length}));
+  colChart($('#ov-rl'),hist,{v:r=>r.n,l:r=>r.name,step:20,all:true,tip:r=>`<b>Reorder level ${r.name}</b>${r.n} รายการ`,aria:'การกระจายของ reorder level'});
+  $('#s-ovrl').innerHTML=`ต่ำสุด ${O.rl_min} · ค่ากลาง <b>${O.rl_med}</b> · สูงสุด ${fmt(O.rl_max)} หน่วย (นโยบายสมมติของร้าน)`;
+}
+
+/* =====================================================================
+   Inventory Planning
+   ===================================================================== */
+const PL={lead:7,safe:7,cover:30,f:'all'};
+let plInit=false;
+function planRows(){
+  return D.drugs.filter(r=>r.nlots||r.dn).map(r=>{
+    const u=r.dq/D.pdays,q=r.q,cov=u>0?q/u:Infinity;
+    const rop=Math.max(r.rl,Math.ceil(u*(PL.lead+PL.safe)));
+    const target=Math.max(rop,Math.ceil(u*PL.cover));
+    let pr='ok';
+    if(u>0&&cov<=PL.lead)pr='urgent'; else if(q<rop)pr='should';
+    const sug=pr==='ok'?0:Math.max(0,target-q);
+    return {...r,u,cov,rop,target,pr,sug,cost2:sug*(r.cost||0)};
+  }).sort((a,b)=>({urgent:0,should:1,ok:2}[a.pr]-{urgent:0,should:1,ok:2}[b.pr])||(a.cov-b.cov)||(a.q/a.rop-b.q/b.rop));
+}
+const PRI={urgent:['ด่วน','r','▲'],should:['ควรสั่ง','o','●'],ok:['ปกติ','g','✓']};
+function drawPlan(){
+  if(!plInit){
+    plInit=true;
+    $('#v-days').textContent=D.pdays;
+    $('#pl-seg').innerHTML=[['all','ทั้งหมด'],['urgent','ด่วน'],['should','ควรสั่ง'],['ok','ปกติ']].map(([k,t])=>`<button type="button" data-f="${k}" aria-pressed="${k==='all'}">${t}</button>`).join('');
+    $('#pl-seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;PL.f=b.dataset.f;drawPlan()});
+    $('#p-lead').addEventListener('input',e=>{PL.lead=+e.target.value;drawPlan()});
+    $('#p-safe').addEventListener('input',e=>{PL.safe=+e.target.value;drawPlan()});
+    $('#p-cover').addEventListener('input',e=>{PL.cover=+e.target.value;drawPlan()});
+  }
+  $('#v-lead').textContent=PL.lead;$('#v-safe').textContent=PL.safe;$('#v-cover').textContent=PL.cover;
+  document.querySelectorAll('#pl-seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.f===PL.f));
+  const rows=planRows();
+  const urg=rows.filter(r=>r.pr==='urgent'),sh=rows.filter(r=>r.pr==='should');
+  const need=urg.concat(sh),total=need.reduce((a,r)=>a+r.cost2,0);
+  const risk=D.risk,riskVal=risk.reduce((a,r)=>a+r.val,0);
+  const dead=rows.filter(r=>r.q>0&&r.dn===0),deadVal=dead.reduce((a,r)=>a+r.val,0);
+  const first=!drawPlan.k;drawPlan.k=1;
+  kpiRow($('#pl-kpis'),[
+    {ic:'cart',lb:'รายการที่ควรสั่งซื้อ',v:need.length,u:`จาก ${rows.length} SKU`,ft:`ด่วน ${urg.length} · ควรสั่ง ${sh.length}`,warn:need.length>0,tag:'ต้องดำเนินการ'},
+    {ic:'box',lb:'ประมาณการมูลค่าสั่งซื้อ',v:total,u:'บาท',ft:`lead ${PL.lead} + safety ${PL.safe} วัน · ครอบคลุม ${PL.cover} วัน`,money:true},
+    {ic:'low',lb:'เสี่ยงขาดก่อนสินค้ามาถึง',v:urg.length,u:'SKU',ft:urg.length?urg.slice(0,3).map(r=>r.sku).join(', '):`ไม่มีรายการที่ใช้ได้น้อยกว่า ${PL.lead} วัน`,warn:urg.length>0,tag:'เร่งด่วน'},
+    {ic:'clock',lb:'เสี่ยงหมดอายุก่อนใช้หมด',v:risk.length,u:'ล็อต',ft:`มูลค่าที่เสี่ยง ${baht(riskVal)}`,warn:risk.length>0,tag:'ควรจัดการ'},
+    {ic:'pause',lb:'สต็อกไม่เคลื่อนไหว',v:dead.length,u:'SKU',ft:dead.length?`${dead.map(r=>r.sku).join(', ')} · ${baht(deadVal)}`:'ทุกรายการมีการจ่าย'}
+  ],first);
+  // days of cover chart
+  const cv=rows.filter(r=>r.u>0&&r.q>=0).sort((a,b)=>a.cov-b.cov).slice(0,12);
+  const CAP=Math.max(60,PL.cover*1.6);
+  hbars($('#pl-cov'),cv,{l:nameOf,v:r=>Math.min(r.cov,CAP),min:CAP,ref:PL.lead,ref2:PL.cover,
+    f:r=>r.cov>999?'999+ วัน':Math.round(r.cov)+' วัน',c:r=>r.pr==='urgent'?'var(--red)':r.pr==='should'?'var(--orange)':'var(--blue)',click:r=>openDrug(r.sku),
+    tip:r=>`<b>${esc(nameOf(r))}</b>ใช้ได้ ${r.cov.toFixed(1)} วัน (${fmt(r.q)} ${esc(r.unit)} ÷ ${r.u.toFixed(2)}/วัน)<br>${PRI[r.pr][2]} ${PRI[r.pr][0]} · คลิกเพื่อดูรายละเอียด`});
+  $('#s-plcov').innerHTML=`12 รายการที่ใช้ได้น้อยที่สุด · เส้นทึบ = lead time (${PL.lead} วัน) · เส้นประ = เป้าหมาย (${PL.cover} วัน)`;
+  const top=need.filter(r=>r.cost2>0).sort((a,b)=>b.cost2-a.cost2).slice(0,10);
+  if(top.length){
+    hbars($('#pl-cost'),top,{l:nameOf,v:r=>r.cost2,f:r=>'฿'+Math.round(r.cost2).toLocaleString('en-US'),click:r=>openDrug(r.sku),
+      c:r=>r.pr==='urgent'?'var(--red)':'var(--orange)',tip:r=>`<b>${esc(nameOf(r))}</b>สั่ง ${fmt(r.sug)} ${esc(r.unit)} × ${baht(r.cost||0)} = ${baht(r.cost2)}`});
+    $('#s-plcost').innerHTML=`รวม <b>${baht(total)}</b> จาก ${need.length} รายการ · สีแดง = ด่วน สีส้ม = ควรสั่ง`;
+  }else{$('#pl-cost').innerHTML='<div class="empty">ไม่มีรายการที่ต้องสั่งซื้อตามเงื่อนไขนี้</div>';$('#s-plcost').textContent='ลองเพิ่ม lead time หรือจำนวนวันครอบคลุม';}
+  // table
+  const shown=rows.filter(r=>PL.f==='all'||r.pr===PL.f);
+  $('#s-pltab').innerHTML=`แสดง ${shown.length} จาก ${rows.length} SKU ที่มีสต็อกหรือมีการจ่าย · คลิกแถวเพื่อเปิดใน Drug Explorer`;
+  $('#pl-table').innerHTML=shown.length?`<table><thead><tr><th>ยา</th><th>หมวด</th><th class="n">ใช้ได้</th><th class="n">ใช้/วัน</th><th class="n">ครอบคลุม (วัน)</th><th class="n">Reorder level</th><th class="n">จุดสั่งซื้อ</th><th class="n">แนะนำสั่ง</th><th class="n">ประมาณการ</th><th>ลำดับ</th></tr></thead><tbody>${
+    shown.map(r=>`<tr class="clk" tabindex="0" data-sku="${r.sku}"><td><b>${esc(nameOf(r))}</b><br><span class="mini">${r.sku} · ${esc(r.form)}</span></td><td>${esc(r.cat)}</td>
+     <td class="n">${fmt(r.q)}</td><td class="n">${r.u.toFixed(2)}</td><td class="n">${r.cov===Infinity?'—':r.cov>999?'999+':r.cov.toFixed(0)}</td><td class="n">${fmt(r.rl)}</td><td class="n">${fmt(r.rop)}</td>
+     <td class="n"><b>${r.sug?fmt(r.sug):'—'}</b>${r.sug?` <span class="mini">${esc(r.unit)}</span>`:''}</td><td class="n">${r.sug?baht(r.cost2):'—'}</td>
+     <td><span class="pill ${PRI[r.pr][1]}">${PRI[r.pr][2]} ${PRI[r.pr][0]}</span></td></tr>`).join('')}</tbody></table>`:'<div class="empty">ไม่มีรายการในกลุ่มนี้</div>';
+  $('#pl-table').querySelectorAll('tr.clk').forEach(tr=>{
+    tr.addEventListener('click',()=>openDrug(tr.dataset.sku));
+    tr.addEventListener('keydown',e=>{if(e.key==='Enter')openDrug(tr.dataset.sku)});
+  });
+  $('#pl-risk').innerHTML=risk.length?`<table><thead><tr><th>ยา</th><th>ล็อต</th><th>หมดอายุ</th><th class="n">เหลือ (วัน)</th><th class="n">คงเหลือ</th><th class="n">คาดใช้ทัน</th><th class="n">เสี่ยงเหลือทิ้ง</th><th class="n">มูลค่าที่เสี่ยง</th></tr></thead><tbody>${
+    risk.map(r=>`<tr><td><b>${esc(r.name)}</b><br><span class="mini">${r.sku} · ใช้เฉลี่ย ${r.rate}/วัน</span></td><td>${r.lot}</td><td>${fdy(r.exp)}</td><td class="n"><span class="pill ${r.days<=60?'r':'o'}">${r.days}</span></td>
+     <td class="n">${fmt(r.q)}</td><td class="n">${fmt(r.use)}</td><td class="n"><b>${fmt(r.risk)}</b> <span class="mini">${esc(r.unit)}</span></td><td class="n">${baht(r.val)}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">ไม่มีล็อตที่เสี่ยงหมดอายุก่อนใช้หมด</div>';
+}
+
+/* =====================================================================
+   Drug Explorer
+   ===================================================================== */
+const EX={q:'',cat:'',form:'',status:'',src:'',sort:'dn',dir:-1,page:0,size:12,sel:null};
+let exInit=false;
+function exFiltered(){
+  const q=EX.q.trim().toLowerCase();
+  const a=D.drugs.filter(r=>{
+    if(q&&!(`${r.sku} ${r.name} ${r.strength} ${r.atc} ${r.cat} ${r.form}`).toLowerCase().includes(q))return false;
+    if(EX.cat&&r.cat!==EX.cat)return false;
+    if(EX.form&&r.form!==EX.form)return false;
+    if(EX.src==='new'&&!r.new)return false;
+    if(EX.src==='old'&&r.new)return false;
+    const s=EX.status;
+    if(s==='stock'&&!r.nlots)return false;
+    if(s==='none'&&r.nlots)return false;
+    if(s==='low'&&!(r.nlots&&r.q<r.rl))return false;
+    if(s==='near'&&!(r.exp&&daysTo(r.exp)<=90))return false;
+    if(s==='disp'&&!r.dn)return false;
+    return true;
+  });
+  const k=EX.sort,d=EX.dir;
+  a.sort((x,y)=>{
+    let c=typeof x[k]==='string'?String(x[k]).localeCompare(String(y[k]),'th'):(x[k]-y[k]);
+    return (c*d)||x.name.localeCompare(y.name);
+  });
+  return a;
+}
+function exInitUI(){
+  exInit=true;
+  const opt=(v,t)=>`<option value="${esc(v)}">${esc(t)}</option>`;
+  $('#ex-cat').innerHTML=opt('','ทุกหมวด')+D.ov.cats.map(c=>opt(c.name,`${c.name} (${c.n})`)).join('');
+  $('#ex-form').innerHTML=opt('','ทุกรูปแบบ')+D.ov.forms.map(f=>opt(f.name,`${f.name} (${f.n})`)).join('');
+  const bind=(id,key)=>$(id).addEventListener(id==='#ex-q'?'input':'change',e=>{EX[key]=e.target.value;EX.page=0;drawExplorer()});
+  bind('#ex-q','q');bind('#ex-cat','cat');bind('#ex-form','form');bind('#ex-status','status');bind('#ex-src','src');
+  $('#ex-reset').addEventListener('click',()=>{
+    Object.assign(EX,{q:'',cat:'',form:'',status:'',src:'',page:0});
+    ['#ex-q','#ex-cat','#ex-form','#ex-status','#ex-src'].forEach(i=>$(i).value='');drawExplorer();
+  });
+  if(!D.ov.n_new)$('#ex-src').closest('label').style.display='none';
+  if(!EX.sel)EX.sel=[...D.drugs].sort((a,b)=>b.dn-a.dn)[0].sku;
+}
+function drawExplorer(){
+  if(!exInit)exInitUI();
+  const a=exFiltered(),pages=Math.max(1,Math.ceil(a.length/EX.size));
+  EX.page=Math.min(EX.page,pages-1);
+  const slice=a.slice(EX.page*EX.size,(EX.page+1)*EX.size);
+  $('#ex-count').textContent=`แสดง ${fmt(a.length)} จาก ${fmt(D.drugs.length)} รายการ`;
+  const cols=[['sku','SKU'],['name','ยา'],['cat','หมวด'],['atc','ATC'],['rl','Reorder','n'],['q','สต็อก','n'],['','สถานะ'],['dn','จ่าย (ครั้ง)','n']];
+  const arrow=k=>EX.sort===k?(EX.dir>0?' ▲':' ▼'):'';
+  $('#ex-table').innerHTML=`<thead><tr>${cols.map(([k,t,c])=>k?`<th class="sortable ${c||''}" data-k="${k}" aria-sort="${EX.sort===k?(EX.dir>0?'ascending':'descending'):'none'}">${t}${arrow(k)}</th>`:`<th>${t}</th>`).join('')}</tr></thead><tbody>${
+   slice.length?slice.map(r=>{const near=r.exp&&daysTo(r.exp)<=90;
+     return `<tr class="clk ${r.sku===EX.sel?'sel':''}" tabindex="0" data-sku="${r.sku}"><td><code>${r.sku}</code></td>
+     <td><b>${esc(nameOf(r))}</b> ${r.unreg?'<span class="pill r" title="ไม่อยู่ใน drugs.json">นอกบัญชี</span>':r.new?'<span class="pill m" title="เพิ่มใน v2.0">ใหม่</span>':''}<br><span class="mini">${esc(r.form)}</span></td>
+     <td>${esc(r.cat)}</td><td>${r.atc||'—'}</td><td class="n">${fmt(r.rl)}</td><td class="n">${r.nlots?fmt(r.q):'—'}</td>
+     <td>${pillH(dstat(r))}${near?' <span class="pill o" title="หมดอายุภายใน 90 วัน">⏱</span>':''}</td><td class="n">${r.dn||'—'}</td></tr>`}).join(''):`<tr><td colspan="8"><div class="empty">ไม่พบรายการที่ตรงกับตัวกรอง</div></td></tr>`}</tbody>`;
+  $('#ex-table').querySelectorAll('th.sortable').forEach(th=>th.addEventListener('click',()=>{
+    const k=th.dataset.k;if(EX.sort===k)EX.dir*=-1;else{EX.sort=k;EX.dir=(k==='dn'||k==='q'||k==='rl')?-1:1}EX.page=0;drawExplorer();}));
+  $('#ex-table').querySelectorAll('tr.clk').forEach(tr=>{
+    const pick=()=>{EX.sel=tr.dataset.sku;drawExplorer()};
+    tr.addEventListener('click',pick);tr.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick()}});
+  });
+  $('#ex-pager').innerHTML=`<span>หน้า ${EX.page+1} / ${pages}</span><span><button class="btn" id="pg-p" type="button" ${EX.page===0?'disabled':''}>← ก่อนหน้า</button> <button class="btn" id="pg-n" type="button" ${EX.page>=pages-1?'disabled':''}>ถัดไป →</button></span>`;
+  $('#pg-p').addEventListener('click',()=>{EX.page--;drawExplorer()});
+  $('#pg-n').addEventListener('click',()=>{EX.page++;drawExplorer()});
+  renderDetail(EX.sel);
+}
+function renderDetail(sku){
+  const r=D.drugs.find(x=>x.sku===sku),node=$('#ex-detail');
+  if(!r){node.innerHTML='<div class="empty">เลือกยาจากตารางเพื่อดูรายละเอียด</div>';return}
+  const u=r.dq/D.pdays,cov=(u>0&&r.q>0)?r.q/u:null;
+  const atcName=(D.ov.atc.find(a=>a.code===r.atc[0])||{}).name||'-';
+  const chain=r.atc?[r.atc[0],r.atc.slice(0,3),r.atc.slice(0,4),r.atc.slice(0,5),r.atc]:[];
+  const byDay={};r.dd.forEach(([d,q])=>byDay[d]=(byDay[d]||0)+q);
+  const bars=D.days.map(x=>({d:x.d,q:byDay[x.d]||0}));
+  const mx=Math.max(1,...bars.map(b=>b.q)),bw=300/bars.length;
+  const svg=`<svg viewBox="0 0 300 70" width="100%" height="70" role="img" aria-label="ปริมาณที่จ่ายรายวัน"><line x1="0" x2="300" y1="62" y2="62" stroke="var(--grid)"/>${
+    bars.map((b,i)=>{const h=b.q/mx*50;return b.q?`<path class="db" data-i="${i}" d="${rtop(i*bw+1.5,62-h,bw-3,h,2)}" fill="var(--blue)"/>`:''}).join('')}${
+    bars.map((b,i)=>`<rect class="dh2" data-i="${i}" x="${i*bw}" y="0" width="${bw}" height="62" fill="transparent"/>`).join('')}
+    <text x="0" y="69" style="font-size:9px">${fd(D.days[0].d)}</text><text x="300" y="69" text-anchor="end" style="font-size:9px">${fd(D.days[D.days.length-1].d)}</text></svg>`;
+  const dst=dstat(r);
+  node.innerHTML=`<h3 class="dh">${esc(nameOf(r))}</h3>
+   <div class="mini">${r.sku} · ${esc(r.form)} · หน่วย: ${esc(r.unit)}</div>
+   <div class="dtags">${pillH(dst)}${r.unreg?'<span class="pill r">ไม่อยู่ในบัญชียา</span>':r.new?'<span class="pill m">เพิ่มใน v2.0 · ยังไม่ได้ตรวจทาน</span>':''}${r.exp&&daysTo(r.exp)<=90?`<span class="pill o">⏱ หมดอายุ ${daysTo(r.exp)} วัน</span>`:''}</div>
+   <div class="mini">${esc(r.cat)}</div>
+   <div class="dsec">${r.atc?`รหัส ATC · กลุ่มหลัก ${r.atc[0]}: ${esc(atcName)}`:'รหัส ATC · ไม่มีข้อมูล (ไม่อยู่ในบัญชียา)'}</div>
+   <div class="atcchain">${chain.map(c=>`<code>${c}</code>`).join('')}</div>
+   <div class="dgrid">
+    <div class="st"><small>สต็อกที่ใช้ได้</small><b>${r.nlots?fmt(r.q):'—'}<em>${r.nlots?esc(r.unit):''}</em></b></div>
+    <div class="st"><small>Reorder level</small><b>${fmt(r.rl)}<em>${esc(r.unit)}</em></b></div>
+    <div class="st"><small>จ่ายในช่วงข้อมูล</small><b>${r.dn}<em>ครั้ง</em></b></div>
+    <div class="st"><small>ผู้ป่วย (ไม่ซ้ำ)</small><b>${r.dp}<em>คน</em></b></div>
+    <div class="st"><small>ปริมาณที่จ่ายรวม</small><b>${fmt(r.dq)}<em>${esc(r.unit)}</em></b></div>
+    <div class="st"><small>ครอบคลุม</small><b>${cov===null?'—':cov>999?'999+':cov.toFixed(0)}<em>${cov===null?'':'วัน'}</em></b></div>
+   </div>
+   <div class="dsec">ปริมาณที่จ่ายรายวัน${r.last?` · ล่าสุด ${fdy(r.last)}`:''}</div>
+   ${r.dn?svg:'<div class="mini">ไม่มีการจ่ายในช่วงข้อมูล</div>'}
+   <div class="dsec">ล็อตในสต็อก</div>
+   ${r.lots.length?`<div class="scroll"><table><thead><tr><th>ล็อต</th><th>หมดอายุ</th><th class="n">คงเหลือ</th><th>สถานะ</th></tr></thead><tbody>${
+     r.lots.map(l=>`<tr><td>${l.lot}</td><td>${l.exp?fdy(l.exp):'<i class="mini">ไม่ระบุ</i>'}</td><td class="n">${fmt(l.q)}</td><td>${pillH(PILL[l.st]||[l.st,'m'])}</td></tr>`).join('')}</tbody></table></div>`:'<div class="mini">ไม่มีข้อมูลสต็อกของยานี้ใน stock.json</div>'}`;
+  node.querySelectorAll('.dh2').forEach(h=>{
+    const b=bars[+h.dataset.i],p=node.querySelector(`.db[data-i="${h.dataset.i}"]`);
+    h.addEventListener('mousemove',e=>{if(p)p.setAttribute('opacity','.75');showTip(e,`<b>${fdl(b.d)}</b>${b.q?`จ่าย ${fmt(b.q)} ${esc(r.unit)}`:'ไม่มีการจ่าย'}`)});
+    h.addEventListener('mouseleave',()=>{if(p)p.removeAttribute('opacity');hideTip()});
+  });
+}
+function openDrug(sku){
+  Object.assign(EX,{q:'',cat:'',form:'',status:'',src:'',sel:sku});
+  if(exInit)['#ex-q','#ex-cat','#ex-form','#ex-status','#ex-src'].forEach(i=>$(i).value='');
+  const idx=exFiltered().findIndex(r=>r.sku===sku);
+  EX.page=idx>=0?Math.floor(idx/EX.size):0;
+  showTab('explorer');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* =====================================================================
+   Tab routing
+   ===================================================================== */
+
+/* =====================================================================
+   Data Quality
+   ===================================================================== */
+const QA={f:'all'};let qaInit=false;
+const KIND={fixed:['แก้ไขแล้ว','b'],excluded:['ไม่นับ','r'],flagged:['ติดธงให้ตรวจ','o']};
+function drawQuality(){
+  const Q=D.qa,L=[...Q.log].sort((a,b)=>a.file.localeCompare(b.file)||String(a.id).localeCompare(String(b.id)));
+  const totalRows=Q.files.reduce((a,f)=>a+f.rows,0);
+  kpiRow($('#qa-kpis'),[
+    {ic:'layers',lb:'แถวข้อมูลที่ตรวจ',v:totalRows,u:'แถว',ft:`${Q.files.length} ไฟล์ · dispense, stock, drugs`},
+    {ic:'low',lb:'ประเด็นที่พบ',v:L.length,u:'รายการ',ft:'บันทึกครบใน exception log'},
+    {ic:'pause',lb:'ไม่นับในตัวเลข',v:Q.kinds.excluded||0,u:'รายการ',ft:'void · นอกช่วงเวลา · ติดลบ · ล็อตซ้ำ'},
+    {ic:'rx',lb:'แก้รูปแบบอัตโนมัติ',v:Q.kinds.fixed||0,u:'รายการ',ft:'วันที่ ข้อความ รหัสซ้ำ'},
+    {ic:'clock',lb:'ติดธงให้ตรวจ',v:Q.kinds.flagged||0,u:'รายการ',ft:'นับตามจริงแต่ควรยืนยันกับต้นทาง',warn:true,tag:'ควรตรวจ'}
+  ],!qaInit);
+  hbars($('#qa-files'),Q.files,{l:f=>`${f.file} (${fmt(f.rows)} แถว)`,v:f=>f.issues,min:Math.max(...Q.files.map(f=>f.issues)),f:f=>f.issues+' ประเด็น',
+    tip:f=>`<b>${esc(f.file)}</b>${fmt(f.rows)} แถว · พบ ${f.issues} ประเด็น (${f.rows_affected} แถวที่ได้รับผลกระทบ)`});
+  const w=Q.files.slice().sort((a,b)=>b.issues-a.issues)[0];
+  $('#s-qafile').innerHTML=`<b>${esc(w.file)}</b> พบมากที่สุด ${w.issues} ประเด็น · drugs.json ไม่พบความผิดปกติในตัวไฟล์เอง`;
+  $('#qa-ba').innerHTML=`<table><thead><tr><th>รายการ</th><th class="n">ก่อน (ดิบ)</th><th class="n">หลัง (สะอาด)</th><th class="n">ผลต่าง</th><th>หมายเหตุ</th></tr></thead><tbody>${
+    Q.ba.map(b=>{const f=x=>b.money?baht(x):fmt(x),d=b.clean-b.raw;return `<tr><td><b>${esc(b.label)}</b></td><td class="n">${f(b.raw)}</td><td class="n"><b>${f(b.clean)}</b></td><td class="n">${d===0?'—':(d>0?'+':'−')+f(Math.abs(d))}</td><td class="mini">${esc(b.note)}</td></tr>`}).join('')}</tbody></table>`;
+  if(!qaInit){
+    qaInit=true;
+    $('#qa-seg').innerHTML=[['all','ทั้งหมด'],['fixed','แก้ไขแล้ว'],['excluded','ไม่นับ'],['flagged','ติดธงให้ตรวจ']].map(([k,t])=>`<button type="button" data-f="${k}" aria-pressed="${k==='all'}">${t}</button>`).join('');
+    $('#qa-seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;QA.f=b.dataset.f;drawQuality()});
+    $('#qa-dl').addEventListener('click',()=>{
+      const rows=[['ไฟล์','รหัสแถว','ฟิลด์','ปัญหาที่พบ','วิธีจัดการ','ประเภท']].concat(L.map(l=>[l.file,l.id,l.field,l.found,l.action,KIND[l.kind][0]]));
+      const csv='\ufeff'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+      try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='exception_log.csv';document.body.appendChild(a);a.click();a.remove()}catch(e){}
+    });
+  }
+  document.querySelectorAll('#qa-seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.f===QA.f));
+  const shown=L.filter(l=>QA.f==='all'||l.kind===QA.f);
+  $('#s-qalog').innerHTML=`แสดง ${shown.length} จาก ${L.length} ประเด็น · เรียงตามไฟล์และรหัสแถว`;
+  $('#qa-log').innerHTML=`<table><thead><tr><th>ไฟล์</th><th>รหัสแถว</th><th>ฟิลด์</th><th>ปัญหาที่พบ</th><th>วิธีจัดการ</th><th>ประเภท</th></tr></thead><tbody>${
+    shown.map(l=>`<tr><td class="mini">${esc(l.file)}</td><td><code>${esc(l.id)}</code></td><td>${esc(l.field)}</td><td>${esc(l.found)}</td><td>${esc(l.action)}</td><td>${pillH(KIND[l.kind])}</td></tr>`).join('')}</tbody></table>`;
+}
+const TABDRAW={sales:drawAll,overview:drawOverview,plan:drawPlan,explorer:drawExplorer,quality:drawQuality};
+let curTab='sales',salesCounted=false;
+function showTab(t){
+  if(!TABDRAW[t])t='sales';
+  curTab=t;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
+  document.querySelectorAll('.tabpane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+t));
+  TABDRAW[t]();
+  if(t==='sales'&&!salesCounted){countUp();salesCounted=true}
+  try{history.replaceState(null,'','#'+t)}catch(e){}
+}
+document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>{showTab(b.dataset.tab);window.scrollTo({top:0,behavior:'smooth'})}));
+showTab((location.hash||'').slice(1)||'sales');
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(curTab!=='explorer')TABDRAW[curTab]()},150)});
+
+$('#theme').addEventListener('click',()=>{
+  const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+  r.dataset.theme=dark?'light':'dark';
+});
+</script>
 </body>
 </html>
